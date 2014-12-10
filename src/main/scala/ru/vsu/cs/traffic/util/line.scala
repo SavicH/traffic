@@ -18,4 +18,26 @@ object line {
     val y = start.y + k * (end.y - start.y)
     new Point(x, y)
   }
+
+  private def isBetween(x: Double, a: Double, b: Double) =
+    (math.min(a, b) <= x) && (x <= math.max(a, b))
+
+  private def isBetween(p: Point, start: Point, end: Point): Boolean = {
+    isBetween(p.x, start.x, end.x) && isBetween(p.y, start.y, end.y)
+  }
+
+  def intersection(s1: Point, e1: Point, s2: Point, e2: Point) = {
+    val a1 = getA(s1, e1)
+    val b1 = getB(s1 ,e1)
+    val a2 = getA(s2, e2)
+    val b2 = getB(s2, e2)
+    val p = if (a1.isNaN) Point(s1.x, a2 * s1.x + b2)
+      else if (a2.isNaN) Point(s2.x, a1 * s2.x + b1)
+        else {
+          val x = (b1 - b2)/(a2 - a1)
+          val y = a1 * x + b1
+          Point(x, y)
+        }
+    if (isBetween(p, s1, e1) && isBetween(p, s2, e2)) p else null
+  }
 }

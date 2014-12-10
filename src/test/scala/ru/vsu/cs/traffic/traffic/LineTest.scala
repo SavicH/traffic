@@ -14,6 +14,7 @@ class LineTest extends FunSuite {
     val p5 = new Point(4, 5)
     val q1 = new Point(1, 5)
     val q2 = new Point(9, 5)
+    val q3 = new Point(5, 5)
   }
 
   test("get A coefficient") {
@@ -63,6 +64,30 @@ class LineTest extends FunSuite {
       intercept[IllegalArgumentException] {
         line.distance2point(10, p1, p3)
       }
+    }
+  }
+
+  test("Intersection 1") {
+    new TestPoints {
+      assert(line.intersection(q1, q2, Point(4, 3), Point(6, 7)) === q3)
+    }
+  }
+
+  test("Intersection 2") {
+    new TestPoints {
+      assert(line.intersection(q1, q2, Point(5, 10), Point(5, 3)) === q3)
+    }
+  }
+
+  test("Intersection 3") {
+    new TestPoints {
+      assert(line.intersection(Point(5, 10), Point(5, 3), q1, q2) === q3)
+    }
+  }
+
+  test("Intersection that doesn't exist") {
+    new TestPoints {
+      assert(line.intersection(q1, q2, Point(0, 0), Point(-1, -1)) === null)
     }
   }
 }
