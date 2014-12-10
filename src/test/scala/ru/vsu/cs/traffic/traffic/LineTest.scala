@@ -34,15 +34,35 @@ class LineTest extends FunSuite {
     }
   }
 
-  test("get A coefficient that equal NaN") {
+  test("Get A coefficient that equal NaN") {
     new TestPoints {
       assert(line.getB(p1, p2).isNaN)
     }
   }
 
-  test("get A coefficient that equal zero") {
+  test("Get A coefficient that equal zero") {
     new TestPoints {
       assert(line.getA(p1, p4) === 0)
+    }
+  }
+
+  test("Distance test") {
+    new TestPoints {
+      assert(p1 -- p5 === 5)
+    }
+  }
+
+  test("Distance to point transformation") {
+    new TestPoints {
+       assert(line.distance2point(math.sqrt(1.25), p1, p3) === new Point(2, 1.5))
+    }
+  }
+
+  test("Distance to point transformation throws exception if distance is bigger than lenght of line") {
+    new TestPoints {
+      intercept[IllegalArgumentException] {
+        line.distance2point(10, p1, p3)
+      }
     }
   }
 }
