@@ -12,7 +12,7 @@ trait TrafficFlow {
 
   def neighbour: TrafficFlow
 
-  def length: Double = start distance end
+  def length: Double = start -- end
 
   def spawn: TrafficFlow
 }
