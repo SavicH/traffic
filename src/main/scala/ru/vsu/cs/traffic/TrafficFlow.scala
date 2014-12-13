@@ -14,5 +14,5 @@ trait TrafficFlow {
 
   def length: Double = start -- end
 
-  def spawn: TrafficFlow
+  def spawn()
 }
