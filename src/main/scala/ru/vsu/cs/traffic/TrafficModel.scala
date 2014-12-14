@@ -14,9 +14,6 @@ trait TrafficModel {
 
   def vehicles: Seq[Vehicle]
 
-  def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Double, isOneWay: Boolean): TrafficModel
-
-  def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Double): TrafficModel =
-    addTrafficFlow(start, end, lanes, probability, isOneWay = false)
+  def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Double, isOneWay: Boolean = false): TrafficModel
 
 }
