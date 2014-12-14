@@ -35,7 +35,7 @@ object TrafficFlow {
     var _neighbour: TrafficFlow = if (_isOneWay) null else new TrafficFlowImpl(_end, _start, lanes, probability, this)
 
     private def this(start: Point, end: Point, lanes: Int, probability: Double, neighbour: TrafficFlow) = {
-      this(start, end, lanes, probability)
+      this(start, end, lanes, _isOneWay = true, probability) //isOneWay = true to prevent recursion
       _neighbour = neighbour
     }
 
