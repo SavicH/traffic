@@ -17,6 +17,8 @@ trait TrafficModel {
   def vehicles: Seq[Vehicle]
 
   def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Double, isOneWay: Boolean = false): TrafficModel
+
+  def +=(flow: TrafficFlow): TrafficModel
 }
 
 object TrafficModel {
@@ -45,10 +47,13 @@ object TrafficModel {
       if (_isRunning) throw new IllegalStateException("Model is already running")
       val flow = TrafficFlow(start, end, lanes, isOneWay, probability)
       addIntersections(flow, isOneWay)
+      this += flow
+    }
+
+    override def +=(flow: TrafficFlow) = {
       _trafficFlows += flow
-      if (!isOneWay) {
+      if (flow.neighbour != null)
         _trafficFlows += flow.neighbour
-      }
       this
     }
 
