@@ -1,6 +1,8 @@
 package ru.vsu.cs.traffic.util
 
-import ru.vsu.cs.traffic.Point
+import ru.vsu.cs.traffic.{Direction, Point}
+
+import scala.math._
 
 object line {
 
@@ -39,5 +41,17 @@ object line {
           Point(x, y)
         }
     if (isBetween(p, s1, e1) && isBetween(p, s2, e2)) p else null
+  }
+
+  private class Vector(s: Point, e: Point) extends Point(s.x - e.x, s.y - e.y) {
+
+    //a length of the projection of the cross product
+    def **(other: Vector): Double = x * other.y - y * other.x
+  }
+
+  def direction(s1: Point, e1: Point, s2: Point, e2: Point): Direction = {
+    val r = (s1.x - e1.x) * (s2.y - e2.y) - (s1.y - e1.y) * (s2.x - e2.x)
+    if (r == 0) throw new IllegalArgumentException("Same direction")
+    if (r < 0) Direction.RIGHT else Direction.LEFT
   }
 }
