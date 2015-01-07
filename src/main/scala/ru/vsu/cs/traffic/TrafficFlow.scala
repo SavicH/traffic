@@ -1,5 +1,7 @@
 package ru.vsu.cs.traffic
 
+import ru.vsu.cs.traffic.util.line
+
 import scala.collection.mutable
 
 trait TrafficFlow {
@@ -15,6 +17,8 @@ trait TrafficFlow {
   def neighbour: TrafficFlow
 
   def length: Double = start -- end
+
+  def &(other: TrafficFlow): Point = line.intersection(start, end, other.start, other.end)
 
   def spawn()
 }
