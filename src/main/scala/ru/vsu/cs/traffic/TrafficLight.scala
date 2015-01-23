@@ -35,11 +35,11 @@ trait TrafficLight {
 
 object TrafficLight {
 
-  def apply(trafficFlows: Map[Direction, TrafficFlow], intersection: Intersection) = {
+  def apply(trafficFlows: Map[Direction, TrafficFlow], intersection: Intersection): TrafficLight = {
     new TrafficLightImpl(trafficFlows, intersection)
   }
 
-  def apply(first: TrafficFlow, second: TrafficFlow, intersection: Intersection) = {
+  def apply(first: TrafficFlow, second: TrafficFlow, intersection: Intersection): TrafficLight = {
     val d1 = first <> second
     val d2 = if (d1 == RIGHT) LEFT else RIGHT
     val flows = Map(

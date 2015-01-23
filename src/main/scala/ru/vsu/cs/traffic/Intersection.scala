@@ -12,7 +12,7 @@ trait Intersection {
 
 object Intersection {
 
-  def apply(first: TrafficFlow, second: TrafficFlow) = new IntersectionImpl(first, second)
+  def apply(first: TrafficFlow, second: TrafficFlow): Intersection = new IntersectionImpl(first, second)
 
   private class IntersectionImpl
     (first: TrafficFlow, second: TrafficFlow)
