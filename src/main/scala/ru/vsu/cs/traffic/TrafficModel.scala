@@ -16,12 +16,14 @@ trait TrafficModel {
 
   def vehicles: Seq[Vehicle]
 
-  def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Double, isOneWay: Boolean = false): TrafficModel
+  def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Double = TrafficModel.DefaultSpawnProbability, isOneWay: Boolean = false): TrafficModel
 
   def +=(flow: TrafficFlow): TrafficModel
 }
 
 object TrafficModel {
+
+  val DefaultSpawnProbability = 0.2
 
   def apply(): TrafficModel = new TrafficModelImpl()
 
