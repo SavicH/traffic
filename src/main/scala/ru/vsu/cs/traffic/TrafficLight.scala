@@ -39,6 +39,18 @@ object TrafficLight {
     new TrafficLightImpl(trafficFlows, intersection)
   }
 
+  def apply(first: TrafficFlow, second: TrafficFlow, intersection: Intersection) = {
+    val d1 = first <> second
+    val d2 = if (d1 == RIGHT) LEFT else RIGHT
+    val flows = Map(
+      FORWARD -> first,
+      BACK -> first.neighbour,
+      d1 -> second,
+      d2 -> second.neighbour
+    )
+    new TrafficLightImpl(flows, intersection)
+  }
+
   private class TrafficLightImpl
   (private val _trafficFlows: Map[Direction, TrafficFlow],
    private val _intersection: Intersection)
