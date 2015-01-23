@@ -39,7 +39,12 @@ object TrafficModel {
     }
 
     private def addIntersections(flow: TrafficFlow, isOneWay: Boolean) = {
-      //todo
+      for {
+        otherFlow <- _trafficFlows
+        point =  flow & otherFlow
+        if point != null
+        if !(intersections map (_.location) contains point)
+      } _intersections += Intersection(flow, otherFlow)
     }
 
     override def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Double, isOneWay: Boolean): TrafficModel = {
