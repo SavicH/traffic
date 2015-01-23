@@ -20,6 +20,8 @@ trait TrafficFlow {
 
   def &(other: TrafficFlow): Point = line.intersection(start, end, other.start, other.end)
 
+  def <>(other: TrafficFlow): Direction = line.direction(start, end, other.start, other.end)
+
   def spawn()
 }
 
