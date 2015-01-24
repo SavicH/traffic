@@ -18,11 +18,11 @@ trait TrafficFlow {
 
   def length: Double = start -- end
 
-  def &(other: TrafficFlow): Point = line.intersection(start, end, other.start, other.end)
+  private[traffic] def &(other: TrafficFlow): Point = line.intersection(start, end, other.start, other.end)
 
-  def <>(other: TrafficFlow): Direction = line.direction(start, end, other.start, other.end)
+  private[traffic] def <>(other: TrafficFlow): Direction = line.direction(start, end, other.start, other.end)
 
-  def spawn()
+  private[traffic] def spawn()
 }
 
 object TrafficFlow {

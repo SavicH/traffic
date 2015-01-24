@@ -2,7 +2,7 @@ package ru.vsu.cs.traffic
 
 trait Vehicle {
 
-  def Move: Vehicle
+  private[traffic] def move: Vehicle
 
   def trafficFlow: TrafficFlow
 
