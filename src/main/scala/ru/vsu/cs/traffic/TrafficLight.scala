@@ -56,7 +56,7 @@ object TrafficLight {
    private val _intersection: Intersection)
   extends TrafficLight {
 
-    private lazy val _opposite = intersection.trafficLights.filter(_.trafficFlow(BACK) == _trafficFlows(FORWARD)).head
+    private lazy val _opposite = intersection.trafficLights.find(_.trafficFlow(BACK) == _trafficFlows(FORWARD)).orNull
 
     override def intersection: Intersection = _intersection
     
