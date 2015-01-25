@@ -4,6 +4,8 @@ import scala.collection.mutable
 
 trait TrafficModel {
 
+  val DefaultSpawnProbability = 0.2
+
   def run()
 
   def isRunning: Boolean
@@ -16,14 +18,12 @@ trait TrafficModel {
 
   def vehicles: Seq[Vehicle]
 
-  def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Double = TrafficModel.DefaultSpawnProbability, isOneWay: Boolean = false): TrafficModel
+  def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Double = DefaultSpawnProbability, isOneWay: Boolean = false): TrafficModel
 
   def +=(flow: TrafficFlow): TrafficModel
 }
 
 object TrafficModel {
-
-  val DefaultSpawnProbability = 0.2
 
   def apply(): TrafficModel = new TrafficModelImpl()
 
@@ -37,7 +37,7 @@ object TrafficModel {
 
     override def run() {
       _isRunning = true
-      throw new Exception("Not implemented") //todo
+      ??? //todo
     }
 
     private def addIntersections(flow: TrafficFlow, isOneWay: Boolean) = {
@@ -46,7 +46,7 @@ object TrafficModel {
         point =  flow & otherFlow
         if point != null
         if !(intersections map (_.location) contains point)
-      } _intersections += Intersection(flow, otherFlow)
+      } _intersections += flow && otherFlow
     }
 
     override def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Double, isOneWay: Boolean): TrafficModel = {
