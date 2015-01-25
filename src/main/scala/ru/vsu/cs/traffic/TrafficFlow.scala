@@ -6,17 +6,17 @@ import scala.collection.mutable
 
 trait TrafficFlow {
 
-  def start: Point
+  val start: Point
 
-  def end: Point
+  val end: Point
 
-  def lanes: Int
+  val lanes: Int
 
-  def vehicles: Seq[Vehicle]
+  val length: Double = start -- end
 
   def neighbour: TrafficFlow
 
-  def length: Double = start -- end
+  def vehicles: Seq[Vehicle]
 
   def intersections: Seq[Intersection]
 
@@ -34,35 +34,30 @@ object TrafficFlow {
     new TrafficFlowImpl(start, end, lanes, isOneWay, probability)
 
   private class TrafficFlowImpl
-  (private val _start: Point,
-   private val _end: Point,
-   private val _lanes: Int,
-   _isOneWay: Boolean,
-   private val probability: Double) extends TrafficFlow {
+  (
+      val start: Point,
+      val end: Point,
+      val lanes: Int,
+      _isOneWay: Boolean,
+      private val probability: Double
+  ) extends TrafficFlow {
 
     var _vehicles = mutable.MutableList[Vehicle]()
 
-    var _neighbour: TrafficFlow = if (_isOneWay) null else new TrafficFlowImpl(_end, _start, lanes, probability, this)
+    private var _neighbour: TrafficFlow = if (_isOneWay) null else new TrafficFlowImpl(end, start, lanes, probability, this)
 
     var _intersections = mutable.MutableList[Intersection]()
 
-    private def this(start: Point, end: Point, lanes: Int, probability: Double, neighbour: TrafficFlow) = {
+    private def this (start: Point, end: Point, lanes: Int, probability: Double, neighbour: TrafficFlow) = {
       this(start, end, lanes, _isOneWay = true, probability) //isOneWay = true to prevent recursion
       _neighbour = neighbour
     }
 
-    override def start: Point = _start
-
-    override def end: Point = _end
-
-    override def lanes: Int = _lanes
-
-    override def neighbour: TrafficFlow = _neighbour
+    def neighbour = _neighbour
 
     override def vehicles: Seq[Vehicle] = _vehicles.toList
 
     override def intersections: Seq[Intersection] = _intersections.toList
-
 
     override private[traffic] def &&(other: TrafficFlow): Intersection = other match {
       case other: TrafficFlowImpl => {

@@ -2,11 +2,11 @@ package ru.vsu.cs.traffic
 
 trait Intersection {
 
-  def location: Point
+  val location: Point
 
-  def trafficFlows: Seq[TrafficFlow]
+  val trafficFlows: Seq[TrafficFlow]
 
-  def trafficLights: Seq[TrafficLight]
+  val trafficLights: Seq[TrafficLight]
 
 }
 
@@ -14,13 +14,14 @@ object Intersection {
 
   def apply(first: TrafficFlow, second: TrafficFlow): Intersection = new IntersectionImpl(first, second)
 
-  private class IntersectionImpl
-    (first: TrafficFlow, second: TrafficFlow)
+  private class IntersectionImpl(first: TrafficFlow, second: TrafficFlow)
   extends Intersection {
 
-    private val _location = first & second
-    private val _trafficFlows = List(first, first.neighbour, second, second.neighbour) filter (_ != null)
-    private val _trafficLights = {
+    val location = first & second
+
+    val trafficFlows = List(first, first.neighbour, second, second.neighbour) filter (_ != null)
+
+    val trafficLights = {
       createTrafficLights(first, second) ::: createTrafficLights(second, first)
     }
 
@@ -29,11 +30,5 @@ object Intersection {
         f <- List(first, first.neighbour) filter (_ != null)
       } yield TrafficLight(f, second, this)
     }
-
-    override def location: Point = _location
-
-    override def trafficFlows: Seq[TrafficFlow] = _trafficFlows
-
-    override def trafficLights: Seq[TrafficLight] = _trafficLights
   }
 }
