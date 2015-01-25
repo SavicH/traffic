@@ -30,11 +30,12 @@ trait TrafficFlow {
 }
 
 object TrafficFlow {
-  def apply(start: Point, end: Point, lanes: Int, isOneWay: Boolean, probability: Double): TrafficFlow =
-    new TrafficFlowImpl(start, end, lanes, isOneWay, probability)
+  def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, isOneWay: Boolean, probability: Double): TrafficFlow =
+    new TrafficFlowImpl(model, start, end, lanes, isOneWay, probability)
 
   private class TrafficFlowImpl
   (
+      private val model: TrafficModel,
       val start: Point,
       val end: Point,
       val lanes: Int,
@@ -44,12 +45,12 @@ object TrafficFlow {
 
     var _vehicles = mutable.MutableList[Vehicle]()
 
-    private var _neighbour: TrafficFlow = if (_isOneWay) null else new TrafficFlowImpl(end, start, lanes, probability, this)
+    private var _neighbour: TrafficFlow = if (_isOneWay) null else new TrafficFlowImpl(model, end, start, lanes, probability, this)
 
     var _intersections = mutable.MutableList[Intersection]()
 
-    private def this (start: Point, end: Point, lanes: Int, probability: Double, neighbour: TrafficFlow) = {
-      this(start, end, lanes, _isOneWay = true, probability) //isOneWay = true to prevent recursion
+    private def this (model: TrafficModel, start: Point, end: Point, lanes: Int, probability: Double, neighbour: TrafficFlow) = {
+      this(model, start, end, lanes, _isOneWay = true, probability) //isOneWay = true to prevent recursion
       _neighbour = neighbour
     }
 
@@ -64,7 +65,7 @@ object TrafficFlow {
         val point = this & other
         if (point == null) null
         else {
-          val intersection = Intersection(this, other)
+          val intersection = Intersection(model, this, other)
           _intersections += intersection
           other._intersections += intersection
           intersection

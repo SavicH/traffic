@@ -16,9 +16,16 @@ trait Intersection {
 
 object Intersection {
 
-  def apply(first: TrafficFlow, second: TrafficFlow): Intersection = new IntersectionImpl(first, second)
+  def apply(model: TrafficModel, first: TrafficFlow, second: TrafficFlow): Intersection = {
+    new IntersectionImpl(model, first, second)
+  }
 
-  private class IntersectionImpl(first: TrafficFlow, second: TrafficFlow)
+  private class IntersectionImpl
+  (
+    private val model: TrafficModel,
+    first: TrafficFlow,
+    second: TrafficFlow
+  )
   extends Intersection {
 
     val location = first & second
@@ -32,7 +39,7 @@ object Intersection {
     private def createTrafficLights(first: TrafficFlow, second: TrafficFlow) : List[TrafficLight] = {
       for {
         f <- List(first, first.neighbour) filter (_ != null)
-      } yield TrafficLight(f, second, this)
+      } yield TrafficLight(model, f, second, this)
     }
   }
 }

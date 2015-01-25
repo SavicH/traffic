@@ -1,10 +1,14 @@
 package ru.vsu.cs.traffic
 
+import akka.actor.ActorSystem
+
 import scala.collection.mutable
 
 trait TrafficModel {
 
   val DefaultSpawnProbability = 0.2
+
+  private[traffic] val actorSystem: ActorSystem = ActorSystem()
 
   def run()
 
@@ -52,7 +56,7 @@ object TrafficModel {
     override def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Double, isOneWay: Boolean): TrafficModel = {
       if (lanes <= 0) throw new IllegalArgumentException("Lanes count must be positive")
       if (_isRunning) throw new IllegalStateException("Model is already running")
-      val flow = TrafficFlow(start, end, lanes, isOneWay, probability)
+      val flow = TrafficFlow(this, start, end, lanes, isOneWay, probability)
       addIntersections(flow, isOneWay)
       this += flow
     }
