@@ -59,7 +59,7 @@ class LineTest extends FunSuite {
     }
   }
 
-  test("Distance to point transformation throws exception if distance is bigger than lenght of line") {
+  test("Distance to point transformation throws exception if distance is bigger than length of line") {
     new TestPoints {
       intercept[IllegalArgumentException] {
         line.distance2point(10, p1, p3)
