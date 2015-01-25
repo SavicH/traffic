@@ -1,5 +1,7 @@
 package ru.vsu.cs.traffic
 
+import ru.vsu.cs.traffic.Direction.FORWARD
+
 trait Intersection {
 
   val location: Point
@@ -7,6 +9,8 @@ trait Intersection {
   val trafficFlows: Seq[TrafficFlow]
 
   val trafficLights: Seq[TrafficLight]
+
+  def apply(flow: TrafficFlow): TrafficLight = trafficLights.find(_(FORWARD) == flow).orNull
 
 }
 
