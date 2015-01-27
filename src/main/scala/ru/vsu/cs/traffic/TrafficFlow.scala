@@ -26,7 +26,7 @@ trait TrafficFlow {
 
   private[traffic] def <>(other: TrafficFlow): Direction = line.direction(start, end, other.start, other.end)
 
-  private[traffic] def spawn()
+  private[traffic] def spawn(timestep: Double)
 }
 
 object TrafficFlow {
@@ -74,7 +74,7 @@ object TrafficFlow {
       case _ => throw new IllegalArgumentException
     }
 
-    override def spawn() = {
+    override def spawn(timestep: Double) = {
       ??? //todo
     }
 

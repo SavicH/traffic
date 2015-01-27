@@ -31,7 +31,9 @@ object TrafficModel {
 
   def apply(): TrafficModel = new TrafficModelImpl()
 
-  private class TrafficModelImpl extends TrafficModel {
+  def apply(timestep: Double): TrafficModel = new TrafficModelImpl(timestep)
+
+  private class TrafficModelImpl (val timestep: Double = 0.1)extends TrafficModel {
 
     private val _trafficFlows = mutable.MutableList[TrafficFlow]()
 

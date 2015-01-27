@@ -4,7 +4,7 @@ import ru.vsu.cs.traffic.util.line
 
 trait Vehicle {
 
-  private[traffic] def move: Vehicle
+  private[traffic] def move(timestep: Double): Unit
 
   def trafficFlow: TrafficFlow
 
@@ -38,7 +38,7 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
 
   val length = 5.0
 
-  override private[traffic] def move: Vehicle = ???
+  override private[traffic] def move(timestep: Double): Unit = ???
 
   override def lane: Int = _lane
 
