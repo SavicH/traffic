@@ -26,6 +26,10 @@ trait TrafficFlow {
 
   private[traffic] def <>(other: TrafficFlow): Direction = line.direction(start, end, other.start, other.end)
 
+  private[traffic] def +=(v: Vehicle): Unit
+
+  private[traffic] def -=(v: Vehicle): Unit
+
   private[traffic] def spawn(timestep: Double)
 }
 
@@ -43,7 +47,7 @@ object TrafficFlow {
       private val probability: Double
   ) extends TrafficFlow {
 
-    var _vehicles = mutable.MutableList[Vehicle]()
+    var _vehicles = mutable.ListBuffer[Vehicle]()
 
     private var _neighbour: TrafficFlow = if (_isOneWay) null else new TrafficFlowImpl(model, end, start, lanes, probability, this)
 
@@ -73,6 +77,10 @@ object TrafficFlow {
       }
       case _ => throw new IllegalArgumentException
     }
+
+    override private[traffic] def +=(v: Vehicle): Unit = _vehicles += v
+
+    override private[traffic] def -=(v: Vehicle): Unit = _vehicles -= v
 
     override def spawn(timestep: Double) = {
       ??? //todo
