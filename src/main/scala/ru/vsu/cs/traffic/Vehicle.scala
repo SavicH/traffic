@@ -1,10 +1,11 @@
 package ru.vsu.cs.traffic
 
+import akka.actor.{TypedActor, TypedProps}
 import ru.vsu.cs.traffic.util.line
 
-trait Vehicle {
+trait Vehicle extends TrafficActor {
 
-  private[traffic] def move(timestep: Double): Unit
+  private[traffic] def act(timeStep: Double): Unit
 
   def trafficFlow: TrafficFlow
 
@@ -23,7 +24,10 @@ trait Vehicle {
 
 object Vehicle {
   def apply(model: TrafficModel, trafficFlow: TrafficFlow) = {
-    new VehicleImpl(trafficFlow)
+    def apply(model: TrafficModel, trafficFlow: TrafficFlow): Vehicle = {
+      //TypedActor(model.actorSystem).typedActorOf(TypedProps(classOf[Vehicle], new VehicleImpl(trafficFlow)))
+      new VehicleImpl(trafficFlow)
+    }
   }
 }
 
@@ -38,7 +42,7 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
 
   val length = 5.0
 
-  override private[traffic] def move(timestep: Double): Unit = ???
+  override private[traffic] def act(timeStep: Double): Unit = ???
 
   override def lane: Int = _lane
 

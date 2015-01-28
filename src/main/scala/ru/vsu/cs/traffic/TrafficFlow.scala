@@ -1,5 +1,6 @@
 package ru.vsu.cs.traffic
 
+import akka.actor.{TypedProps, TypedActor}
 import ru.vsu.cs.traffic.util.line
 
 import scala.collection.mutable
@@ -30,22 +31,26 @@ trait TrafficFlow {
 
   private[traffic] def -=(v: Vehicle): Unit
 
-  private[traffic] def spawn(timestep: Double)
+  private[traffic] def act(timeStep: Double)
+
+  protected def ++=(intersection: Intersection): Unit
 }
 
 object TrafficFlow {
   def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, isOneWay: Boolean, probability: Double): TrafficFlow =
+  //TypedActor(model.actorSystem).typedActorOf(TypedProps(classOf[TrafficFlow],
+    //new TrafficFlowImpl(model, start, end, lanes, isOneWay, probability)))
     new TrafficFlowImpl(model, start, end, lanes, isOneWay, probability)
 
   private class TrafficFlowImpl
   (
-      private val model: TrafficModel,
-      val start: Point,
-      val end: Point,
-      val lanes: Int,
-      _isOneWay: Boolean,
-      private val probability: Double
-  ) extends TrafficFlow {
+    private val model: TrafficModel,
+    val start: Point,
+    val end: Point,
+    val lanes: Int,
+    _isOneWay: Boolean,
+    private val probability: Double
+    ) extends TrafficFlow {
 
     var _vehicles = mutable.ListBuffer[Vehicle]()
 
@@ -53,7 +58,7 @@ object TrafficFlow {
 
     var _intersections = mutable.MutableList[Intersection]()
 
-    private def this (model: TrafficModel, start: Point, end: Point, lanes: Int, probability: Double, neighbour: TrafficFlow) = {
+    private def this(model: TrafficModel, start: Point, end: Point, lanes: Int, probability: Double, neighbour: TrafficFlow) = {
       this(model, start, end, lanes, _isOneWay = true, probability) //isOneWay = true to prevent recursion
       _neighbour = neighbour
     }
@@ -64,25 +69,27 @@ object TrafficFlow {
 
     override def intersections: Seq[Intersection] = _intersections.toList
 
-    override private[traffic] def &&(other: TrafficFlow): Intersection = other match {
-      case other: TrafficFlowImpl => {
-        val point = this & other
-        if (point == null) null
-        else {
-          val intersection = Intersection(model, this, other)
-          _intersections += intersection
-          other._intersections += intersection
-          intersection
-        }
+
+    override protected def ++=(intersection: Intersection): Unit = {
+      _intersections += intersection
+    }
+
+    override private[traffic] def &&(other: TrafficFlow): Intersection = {
+      val point = this & other
+      if (point == null) null
+      else {
+        val intersection = Intersection(model, this, other)
+        this ++= intersection
+        other ++= intersection
+        intersection
       }
-      case _ => throw new IllegalArgumentException
     }
 
     override private[traffic] def +=(v: Vehicle): Unit = _vehicles += v
 
     override private[traffic] def -=(v: Vehicle): Unit = _vehicles -= v
 
-    override def spawn(timestep: Double) = {
+    override def act(timeStep: Double) = {
       ??? //todo
     }
 

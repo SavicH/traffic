@@ -1,6 +1,7 @@
 package ru.vsu.cs.traffic.traffic
 
 import org.scalatest.FunSuite
+import ru.vsu.cs.traffic.Direction._
 import ru.vsu.cs.traffic.{Point, TrafficModel}
 
 class IntersectionsTest extends FunSuite {
@@ -15,12 +16,27 @@ class IntersectionsTest extends FunSuite {
   model.addTrafficFlow(s1, e1, 1)
   model.addTrafficFlow(s2, e2, 1)
   model.addTrafficFlow(s3, e3, 1, isOneWay = true)
+  
+  val f1 = findFlow(s1)
+  val f2 = findFlow(s2)
+  val f3 = findFlow(s3)
+  
+  val i1 = findIntersection(Point(4,5))
+  val i2 = findIntersection(Point(9,5))
+  
+  def findFlow(start: Point) = {
+    model.trafficFlows.find(_.start == start).get  
+  }
+  
+  def findIntersection(location: Point) = {
+    model.intersections.find(_.location == location).get
+  }
 
-  test("Intersection count") {
+  test("The intersections count") {
     assert(model.intersections.length === 2)
   }
 
-  test("Traffic lights count") {
+  test("The traffic lights count") {
     assert(model.trafficLights.length === 7)
   }
 
@@ -29,7 +45,31 @@ class IntersectionsTest extends FunSuite {
   }
 
   test("Intersections on a traffic flow") {
-    assert(model.trafficFlows.find(_.start == Point(2, 5)).get.intersections.length === 2)
+    assert(f1.intersections.length === 2)
+  }
+  
+  test("A traffic light on the first intersection 1") {
+    assert(i1(f1)(BACK) == f1.neighbour)
+  }
+
+  test("A traffic light on the first intersection 2") {
+    assert(i1(f1)(LEFT) == f2)
+  }
+
+  test("A traffic light on the first intersection 3") {
+    assert(i1(f1)(RIGHT) == f2.neighbour)
+  }
+
+  test("A traffic light on the second intersection 1") {
+    assert(i2(f1)(BACK) == f1.neighbour)
+  }
+
+  test("A traffic light on the second intersection 2") {
+    assert(i2(f1)(LEFT) == f3)
+  }
+
+  test("A traffic light on the second intersection 3") {
+    assert(i2(f1)(RIGHT) == null)
   }
 
 
