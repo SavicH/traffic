@@ -21,7 +21,7 @@ trait TrafficFlow {
 
   def intersections: Seq[Intersection]
 
-  private[traffic] def &(other: TrafficFlow): Point = line.intersection(start, end, other.start, other.end)
+  private[traffic] def &(other: TrafficFlow): Point
 
   private[traffic] def &&(other: TrafficFlow): Intersection
 
@@ -37,10 +37,17 @@ trait TrafficFlow {
 }
 
 object TrafficFlow {
-  def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, isOneWay: Boolean, probability: Double): TrafficFlow =
-  //TypedActor(model.actorSystem).typedActorOf(TypedProps(classOf[TrafficFlow],
-    //new TrafficFlowImpl(model, start, end, lanes, isOneWay, probability)))
+  def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, isOneWay: Boolean, probability: Double): TrafficFlow = {
+//    TypedActor(model.actorSystem).typedActorOf(TypedProps(classOf[TrafficFlow],
+//      new TrafficFlowImpl(model, start, end, lanes, isOneWay, probability)))
     new TrafficFlowImpl(model, start, end, lanes, isOneWay, probability)
+  }
+
+  def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, probability: Double, neighbour: TrafficFlow): TrafficFlow = {
+//    TypedActor(model.actorSystem).typedActorOf(TypedProps(classOf[TrafficFlow],
+//      new TrafficFlowImpl(model, start, end, lanes, probability, neighbour)))
+    new TrafficFlowImpl(model, start, end, lanes, probability, neighbour)
+  }
 
   private class TrafficFlowImpl
   (
@@ -52,13 +59,14 @@ object TrafficFlow {
     private val probability: Double
     ) extends TrafficFlow {
 
-    var _vehicles = mutable.ListBuffer[Vehicle]()
+    private var _vehicles = mutable.ListBuffer[Vehicle]()
 
-    private var _neighbour: TrafficFlow = if (_isOneWay) null else new TrafficFlowImpl(model, end, start, lanes, probability, this)
+    //private var _neighbour: TrafficFlow = if (_isOneWay) null else TrafficFlow(model, end, start, lanes, probability, TypedActor.self[TrafficFlow])
+    private var _neighbour: TrafficFlow = if (_isOneWay) null else TrafficFlow(model, end, start, lanes, probability, this)
 
-    var _intersections = mutable.MutableList[Intersection]()
+    private var _intersections = mutable.MutableList[Intersection]()
 
-    private def this(model: TrafficModel, start: Point, end: Point, lanes: Int, probability: Double, neighbour: TrafficFlow) = {
+    def this(model: TrafficModel, start: Point, end: Point, lanes: Int, probability: Double, neighbour: TrafficFlow) = {
       this(model, start, end, lanes, _isOneWay = true, probability) //isOneWay = true to prevent recursion
       _neighbour = neighbour
     }
@@ -69,15 +77,20 @@ object TrafficFlow {
 
     override def intersections: Seq[Intersection] = _intersections.toList
 
-
     override protected def ++=(intersection: Intersection): Unit = {
       _intersections += intersection
+    }
+
+
+    override private[traffic] def &(other: TrafficFlow): Point = {
+      line.intersection(start, end, other.start, other.end)
     }
 
     override private[traffic] def &&(other: TrafficFlow): Intersection = {
       val point = this & other
       if (point == null) null
       else {
+        //val intersection = Intersection(model, TypedActor.self, other)
         val intersection = Intersection(model, this, other)
         this ++= intersection
         other ++= intersection
@@ -93,6 +106,9 @@ object TrafficFlow {
       ??? //todo
     }
 
+    override def toString: String = {
+      "TrafficFlow: " + start + " " + end
+    }
   }
 
 }

@@ -25,8 +25,7 @@ trait Vehicle extends TrafficActor {
 object Vehicle {
   def apply(model: TrafficModel, trafficFlow: TrafficFlow) = {
     def apply(model: TrafficModel, trafficFlow: TrafficFlow): Vehicle = {
-      //TypedActor(model.actorSystem).typedActorOf(TypedProps(classOf[Vehicle], new VehicleImpl(trafficFlow)))
-      new VehicleImpl(trafficFlow)
+      TypedActor(model.actorSystem).typedActorOf(TypedProps(classOf[Vehicle], new VehicleImpl(trafficFlow)))
     }
   }
 }
