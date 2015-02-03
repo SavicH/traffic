@@ -81,7 +81,6 @@ object TrafficFlow {
       _intersections += intersection
     }
 
-
     override private[traffic] def &(other: TrafficFlow): Point = {
       line.intersection(start, end, other.start, other.end)
     }
@@ -103,7 +102,10 @@ object TrafficFlow {
     override private[traffic] def -=(v: Vehicle): Unit = _vehicles -= v
 
     override def act(timeStep: Double) = {
-      ??? //todo
+      if (math.random < probability * timeStep) { //todo: the case when probability * timeStep > 1
+        this += Vehicle(model, this)
+      }
+      _vehicles.foreach(_.act(timeStep))
     }
 
     override def toString: String = {

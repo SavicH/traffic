@@ -15,7 +15,7 @@ trait Vehicle extends TrafficActor {
 
   def lane: Int
 
-  def velocity: Double
+  def speed: Double
 
   def acceleration: Double
 
@@ -24,7 +24,7 @@ trait Vehicle extends TrafficActor {
 
 object Vehicle {
   def apply(model: TrafficModel, trafficFlow: TrafficFlow) = {
-      TypedActor(model.actorSystem).typedActorOf(TypedProps(classOf[Vehicle], new VehicleImpl(trafficFlow)))
+    TypedActor(model.actorSystem).typedActorOf(TypedProps(classOf[Vehicle], new VehicleImpl(trafficFlow)))
   }
 }
 
@@ -32,20 +32,26 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
   extends Vehicle {
 
   //todo: proper initialization
-  private var _distance = 0
-  private var _velocity = 0
+  private var _distance = 0.0
+  private var _speed = 15.0
   private var _lane = 1
-  private var _acceleration = 0
+  private var _acceleration = 0.0
 
   val length = 5.0
 
-  override private[traffic] def act(timeStep: Double): Unit = ???
+  override private[traffic] def act(timeStep: Double): Unit = {
+    if (_distance > _trafficFlow.length) {
+      _trafficFlow -= TypedActor.self
+      TypedActor.context.stop(TypedActor.self)
+    }
+    _distance += speed * timeStep
+  }
 
   override def lane: Int = _lane
 
   override def distance: Double = _distance
 
-  override def velocity: Double = _velocity
+  override def speed: Double = _speed
 
   override def trafficFlow: TrafficFlow = _trafficFlow
 

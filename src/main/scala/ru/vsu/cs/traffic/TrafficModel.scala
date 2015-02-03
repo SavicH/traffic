@@ -1,5 +1,8 @@
 package ru.vsu.cs.traffic
 
+import java.util.TimerTask
+import java.util.Timer
+
 import akka.actor.ActorSystem
 
 import scala.collection.mutable
@@ -31,9 +34,9 @@ object TrafficModel {
 
   def apply(): TrafficModel = new TrafficModelImpl()
 
-  def apply(timestep: Double): TrafficModel = new TrafficModelImpl(timestep)
+  def apply(timeStep: Double): TrafficModel = new TrafficModelImpl(timeStep)
 
-  private class TrafficModelImpl (val timestep: Double = 0.1)extends TrafficModel {
+  private class TrafficModelImpl (val timeStep: Double = 0.025)extends TrafficModel {
 
     private val _trafficFlows = mutable.MutableList[TrafficFlow]()
 
@@ -41,9 +44,14 @@ object TrafficModel {
 
     private var _isRunning = false
 
+    private val timer = new Timer()
+
     override def run() {
       _isRunning = true
-      ??? //todo
+      timer.scheduleAtFixedRate(new TimerTask {
+        override def run(): Unit =
+          trafficFlows.foreach(_.act(timeStep))
+      }, 0, (timeStep * 1000).toInt)
     }
 
     private def addIntersections(flow: TrafficFlow, isOneWay: Boolean) = {
