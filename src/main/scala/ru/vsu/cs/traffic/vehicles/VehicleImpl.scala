@@ -1,6 +1,8 @@
 package ru.vsu.cs.traffic.vehicles
 
-import ru.vsu.cs.traffic.{Vehicle, Point, TrafficFlow}
+import scala.util.Random
+
+import ru.vsu.cs.traffic.{Vehicle, TrafficFlow}
 
 import scala.math._
 
@@ -34,7 +36,7 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
   //todo: proper initialization
   private var _distance = 0.0
   private var _speed = 10 * random
-  private var _lane = 1
+  private var _lane = VehicleImpl.getRandomLane(_trafficFlow.lanes)
   private var _acceleration = 0.0
 
   val length = 5.0
@@ -71,5 +73,11 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
 
   override def acceleration: Double = _acceleration
 
+}
+
+object VehicleImpl {
+  private val random = new Random(System.nanoTime())
+
+  private def getRandomLane(lanes: Int) = random.nextInt(lanes) + 1
 }
 
