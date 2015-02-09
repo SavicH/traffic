@@ -2,7 +2,8 @@ package ru.vsu.cs.traffic.vehicles
 
 import ru.vsu.cs.traffic.{Vehicle, Point, TrafficFlow}
 
-class VirtualVehicle(flow: TrafficFlow, point: Point, offset: Double = 0) extends Vehicle {
+class VirtualVehicle(flow: TrafficFlow, point: Point, offset: Double = 0)
+  extends Vehicle {
 
   override private[traffic] def act(timeStep: Double): Unit = {}
 

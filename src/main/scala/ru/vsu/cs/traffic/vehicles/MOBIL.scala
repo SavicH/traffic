@@ -1,8 +1,6 @@
 package ru.vsu.cs.traffic.vehicles
 
-import ru.vsu.cs.traffic.Vehicle
-
-class MOBIL (private val vehicle: Vehicle) {
+class MOBIL (private val vehicle: MOBILVehicle) {
 
   private val p = vehicle.politenessFactor
 
@@ -25,5 +23,5 @@ class MOBIL (private val vehicle: Vehicle) {
 }
 
 object MOBIL {
-  def apply(vehicle: Vehicle) = new MOBIL(vehicle)
+  def apply(vehicle: MOBILVehicle) = new MOBIL(vehicle)
 }
