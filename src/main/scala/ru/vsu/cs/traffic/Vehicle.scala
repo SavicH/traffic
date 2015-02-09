@@ -1,9 +1,7 @@
 package ru.vsu.cs.traffic
 
-import akka.actor.{TypedActor, TypedProps}
 import ru.vsu.cs.traffic.util.line
 import ru.vsu.cs.traffic.vehicles.VehicleImpl
-import math._
 
 trait Vehicle extends TrafficActor {
 

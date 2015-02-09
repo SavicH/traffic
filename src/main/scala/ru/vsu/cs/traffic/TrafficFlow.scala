@@ -101,9 +101,20 @@ object TrafficFlow {
 
     override private[traffic] def -=(v: Vehicle): Unit = _vehicles -= v
 
+    private val VehicleSpawnMinDelay = 2.0
+    private var vehicleSpawnDelay = VehicleSpawnMinDelay
+
+
     override def act(timeStep: Double) = {
-      if (math.random < probability * timeStep) { //todo: the case when probability * timeStep > 1
-        this += Vehicle(model, this)
+      if (vehicleSpawnDelay >= VehicleSpawnMinDelay) {
+        if (math.random < probability * timeStep) {
+          for (i <- 1 to math.ceil(probability * timeStep).toInt) {
+            this += Vehicle(model, this)
+          }
+          vehicleSpawnDelay = 0
+        }
+      } else {
+        vehicleSpawnDelay += timeStep
       }
       _vehicles.foreach(_.act(timeStep))
     }
