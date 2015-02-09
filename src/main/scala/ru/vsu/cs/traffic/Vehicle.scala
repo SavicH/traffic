@@ -5,6 +5,8 @@ import ru.vsu.cs.traffic.vehicles.VehicleImpl
 
 trait Vehicle extends TrafficActor {
 
+  //IDM params
+
   val desiredSpeed: Double = 16.7
 
   val timeHeadway: Double = 2
@@ -16,6 +18,14 @@ trait Vehicle extends TrafficActor {
   val minimumGap: Double = 1
 
   val accelerationExponent: Double = 4.0
+
+  //MOBIL params
+
+  val politenessFactor: Double = 0.25
+
+  val maximumSafeDeceleration: Double = 4.0
+
+  val thresholdAcceleration: Double = 0.2
 
   private[traffic] def act(timeStep: Double): Unit
 
