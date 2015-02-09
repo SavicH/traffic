@@ -9,31 +9,9 @@ import scala.math._
 class VehicleImpl (private var _trafficFlow: TrafficFlow)
   extends Vehicle {
 
-  private class IDM {
-    private val a = normalAcceleration
-    private val b = brakeDeceleration
-    private val v0 = desiredSpeed
-    private val delta = accelerationExponent
-    private val T = timeHeadway
-    private val s0 = minimumGap
-
-    private def v = speed
-
-    private def dynamicGap(head: Vehicle) = {
-      val dv = speed - head.speed
-      s0 + max(0, v * T + v * dv / (2 * sqrt(a * b)))
-    }
-
-    def acceleration(head: Vehicle) = {
-      val ss = dynamicGap(head)
-      val s = head.distance - distance - head.length
-      a * (1 - pow(v/v0, delta) - pow(ss/s, 2))
-    }
-  }
-
   override val normalAcceleration: Double = 0.3 //todo: low for test purpose (normal 1-2)
   override val brakeDeceleration: Double = 3 //todo: high for test purpose (normal 1-2)
-  //todo: proper initialization
+
   private var _distance = 0.0
   private var _speed = 10 * random
   private var _lane = VehicleImpl.getRandomLane(_trafficFlow.lanes)
@@ -41,7 +19,7 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
 
   val length = 5.0
 
-  private val idm = new IDM
+  private val idm = IDM(this)
 
   private var endOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.end, 100)
 
@@ -53,8 +31,6 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
 
   override private[traffic] def act(timeStep: Double): Unit = {
     if (_distance > _trafficFlow.length) {
-      //_trafficFlow -= TypedActor.self
-      //TypedActor.context.stop(TypedActor.self)
       _trafficFlow -= this
     }
     _acceleration = idm.acceleration(headVehicle)
