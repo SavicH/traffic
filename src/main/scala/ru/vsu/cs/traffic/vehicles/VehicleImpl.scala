@@ -19,20 +19,24 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
 
   val length = 5.0
 
-  private val idm = IDM(this)
+  private[vehicles] val idm = IDM(this)
+  private val mobil = MOBIL(this)
 
   private var endOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.end, 100)
 
-  private def headVehicle = {
-    val vehiclesMap = _trafficFlow.vehicles.filter(_.lane == _lane).map(v => (v.distance, v)).toMap
+  private[vehicles] def headVehicle(lane: Int): Vehicle = {
+    val vehiclesMap = _trafficFlow.vehicles.filter(_.lane == lane).map(v => (v.distance, v)).toMap
     val distances = vehiclesMap.keys.filter(_ > _distance)
     if (distances.isEmpty) endOfFlow else vehiclesMap(distances.min)
   }
+
+  private def headVehicle: Vehicle = headVehicle(_lane)
 
   override private[traffic] def act(timeStep: Double): Unit = {
     if (_distance > _trafficFlow.length) {
       _trafficFlow -= this
     }
+    _lane = mobil.lane
     _acceleration = idm.acceleration(headVehicle)
     _distance += _speed * timeStep + 0.5 * _acceleration * pow(timeStep, 2)
     _speed += _acceleration * timeStep
