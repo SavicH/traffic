@@ -57,9 +57,8 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
       //TypedActor.context.stop(TypedActor.self)
       _trafficFlow -= this
     }
-    _distance += speed * timeStep
-    val head = headVehicle
-    _acceleration = idm.acceleration(head)
+    _acceleration = idm.acceleration(headVehicle)
+    _distance += _speed * timeStep + 0.5 * _acceleration * pow(timeStep, 2)
     _speed += _acceleration * timeStep
   }
 
