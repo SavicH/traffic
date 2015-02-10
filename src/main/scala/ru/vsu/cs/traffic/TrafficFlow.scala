@@ -21,6 +21,8 @@ trait TrafficFlow {
 
   def intersections: Seq[Intersection]
 
+  def trafficLights: Seq[TrafficLight] = intersections.map(_(this))
+
   private[traffic] def &(other: TrafficFlow): Point
 
   private[traffic] def &&(other: TrafficFlow): Intersection

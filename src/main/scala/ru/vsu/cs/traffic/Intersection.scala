@@ -32,6 +32,8 @@ object Intersection {
 
     val trafficFlows = List(first, first.neighbour, second, second.neighbour) filter (_ != null)
 
+    private val trafficLightsColors = Map(first -> Color.GREEN, second -> Color.RED)
+
     val trafficLights = {
       createTrafficLights(first, second) ::: createTrafficLights(second, first)
     }
@@ -39,7 +41,7 @@ object Intersection {
     private def createTrafficLights(first: TrafficFlow, second: TrafficFlow) : List[TrafficLight] = {
       for {
         f <- List(first, first.neighbour) filter (_ != null)
-      } yield TrafficLight(model, f, second, this)
+      } yield TrafficLight(model, f, second, this, trafficLightsColors(first))
     }
   }
 }
