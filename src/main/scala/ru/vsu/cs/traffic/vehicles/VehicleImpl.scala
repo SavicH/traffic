@@ -16,7 +16,7 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
 //  override val desiredSpeed: Double = if (random > 0.5) 15 else 7
 
   private var _distance = 0.0
-  private var _speed = 10 * random
+  private var _speed = random * desiredSpeed
   private var _lane = VehicleImpl.getRandomLane(_trafficFlow.lanes)
   private var _acceleration = 0.0
 
