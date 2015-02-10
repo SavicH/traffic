@@ -1,8 +1,7 @@
-package ru.vsu.cs.traffic.traffic
+package ru.vsu.cs.traffic
 
 import org.scalatest.FunSuite
 import ru.vsu.cs.traffic.Direction._
-import ru.vsu.cs.traffic.{Point, TrafficModel}
 
 class IntersectionsTest extends FunSuite {
 

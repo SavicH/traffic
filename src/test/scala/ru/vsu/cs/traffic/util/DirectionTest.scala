@@ -1,8 +1,8 @@
-package ru.vsu.cs.traffic.traffic
+package ru.vsu.cs.traffic.util
 
 import org.scalatest.FunSuite
-import ru.vsu.cs.traffic.{Direction, Point}
 import ru.vsu.cs.traffic.util.line.direction
+import ru.vsu.cs.traffic.{Direction, Point}
 
 class DirectionTest extends FunSuite {
 

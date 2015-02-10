@@ -9,8 +9,11 @@ import scala.math._
 class VehicleImpl (private var _trafficFlow: TrafficFlow)
   extends MOBILVehicle {
 
-  override val normalAcceleration: Double = 0.3 //todo: low for test purpose (normal 1-2)
-  override val brakeDeceleration: Double = 3 //todo: high for test purpose (normal 1-2)
+  //todo: test values
+//  override val thresholdAcceleration: Double = 0.1
+//  override val normalAcceleration: Double = 0.1
+//  override val brakeDeceleration: Double = 3
+//  override val desiredSpeed: Double = if (random > 0.5) 15 else 7
 
   private var _distance = 0.0
   private var _speed = 10 * random
@@ -25,14 +28,14 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
   def headVehicle(lane: Int = lane): Vehicle = {
     val vehiclesMap = _trafficFlow.vehicles.filter(_.lane == lane)
       .map(v => (v.distance, v)).toMap
-    val distances = vehiclesMap.keys.filter(_ > _distance)
+    val distances = vehiclesMap.keys.filter(_ > distance)
     if (distances.isEmpty) endOfFlow else vehiclesMap(distances.min)
   }
 
   def backVehicle(lane: Int = lane): Vehicle = {
     val vehiclesMap = _trafficFlow.vehicles.filter(_.lane == lane)
       .map(v => (v.distance, v)).toMap
-    val distances = vehiclesMap.keys.filter(_ < _distance)
+    val distances = vehiclesMap.keys.filter(_ < distance)
     if (distances.isEmpty) startOfFlow else vehiclesMap(distances.max).asInstanceOf[IDMVehicle]
   }
 
