@@ -33,6 +33,8 @@ trait TrafficLight extends TrafficActor {
 
   var durations: Map[Color, Double]
 
+  var turnProbability: Map[Direction, Double]
+
   var color: Color
 
   def extendColor(delta: Double)
@@ -63,7 +65,11 @@ object TrafficLight {
     var color: Color)
   extends TrafficLight {
 
+    //todo: should be assigned via constructor
     var durations: Map[Color, Double] = Map(Color.GREEN -> 30, Color.RED -> 30, Color.YELLOW -> 2)
+
+    //todo: without left and back!
+    var turnProbability: Map[Direction, Double] = Map(FORWARD -> 0.5, RIGHT -> 0.5, LEFT -> 0, BACK -> 0)
 
     lazy val opposite = intersection.trafficLights.find(this(BACK) == _(FORWARD)).orNull
 
