@@ -19,6 +19,10 @@ trait TrafficLight extends TrafficActor {
 
   val intersection: Intersection
 
+  val location = intersection.location
+
+  val distance = location -- this(FORWARD).start
+
   val opposite: TrafficLight
 
   val trafficFlows: Seq[TrafficFlow]

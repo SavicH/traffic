@@ -3,6 +3,7 @@ package ru.vsu.cs.traffic.vehicles
 import scala.util.Random
 
 import ru.vsu.cs.traffic.{Vehicle, TrafficFlow}
+import ru.vsu.cs.traffic.Color._
 
 import scala.math._
 
@@ -26,8 +27,11 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
   private var startOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.start, -1000)
 
   def headVehicle(lane: Int = lane): Vehicle = {
-    val vehiclesMap = _trafficFlow.vehicles.filter(_.lane == lane)
-      .map(v => (v.distance, v)).toMap
+    //todo: remove toList
+    val vehicles = _trafficFlow.vehicles.filter(_.lane == lane).toList :::
+      _trafficFlow.trafficLights.filter(_.color == RED)
+        .map(l => VirtualVehicle(trafficFlow, l.location)).toList
+    val vehiclesMap = vehicles.map(v => (v.distance, v)).toMap
     val distances = vehiclesMap.keys.filter(_ > distance)
     if (distances.isEmpty) endOfFlow else vehiclesMap(distances.min)
   }

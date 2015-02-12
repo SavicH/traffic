@@ -49,8 +49,10 @@ object TrafficModel {
     override def run() {
       _isRunning = true
       timer.scheduleAtFixedRate(new TimerTask {
-        override def run(): Unit =
+        override def run(): Unit = {
           trafficFlows.foreach(_.act(timeStep))
+          trafficLights.foreach(_.act(timeStep))
+        }
       }, 0, (timeStep * 1000).toInt)
     }
 
