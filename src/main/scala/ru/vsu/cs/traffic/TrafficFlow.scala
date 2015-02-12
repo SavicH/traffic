@@ -95,6 +95,8 @@ object TrafficFlow {
         val intersection = Intersection(model, this, other)
         this ++= intersection
         other ++= intersection
+        if (this.neighbour != null) this.neighbour ++= intersection
+        if (other.neighbour != null) other.neighbour ++= intersection
         intersection
       }
     }
