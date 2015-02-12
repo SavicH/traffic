@@ -26,6 +26,12 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
   private var endOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.end, 1000)
   private var startOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.start, -1000)
 
+  private var nextIntersection = {
+    if (_trafficFlow.intersections.isEmpty) null else
+      _trafficFlow.intersections
+      .reduceLeft((i1, i2) => if (i1(_trafficFlow).distance < i2(_trafficFlow).distance) i1 else i2)
+  }
+
   def headVehicle(lane: Int = lane): Vehicle = {
     //todo: remove toList
     val vehicles = _trafficFlow.vehicles.filter(_.lane == lane).toList :::
