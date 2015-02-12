@@ -2,8 +2,9 @@ package ru.vsu.cs.traffic.vehicles
 
 import scala.util.Random
 
-import ru.vsu.cs.traffic.{Vehicle, TrafficFlow}
+import ru.vsu.cs.traffic.{Direction, Vehicle, TrafficFlow}
 import ru.vsu.cs.traffic.Color._
+import ru.vsu.cs.traffic.Direction._
 
 import scala.math._
 
@@ -22,6 +23,8 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
   private var _acceleration = 0.0
 
   val length = 5.0
+
+  private var movementStrategy: MovementStrategy = ForwardStrategy
 
   private var endOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.end, 1000)
   private var startOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.start, -1000)
@@ -53,10 +56,7 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
     if (_distance > _trafficFlow.length) {
       _trafficFlow -= this
     }
-    _lane = mobil.lane
-    _acceleration = idm.acceleration
-    _distance += _speed * timeStep + 0.5 * _acceleration * pow(timeStep, 2)
-    _speed += _acceleration * timeStep
+    movementStrategy.move(timeStep)
   }
 
   override def lane: Int = _lane
@@ -68,6 +68,33 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
   override def trafficFlow: TrafficFlow = _trafficFlow
 
   override def acceleration: Double = _acceleration
+
+  private trait MovementStrategy {
+    def move(timeStep: Double)
+  }
+
+  private object ForwardStrategy extends MovementStrategy {
+    override def move(timeStep: Double): Unit = {
+      if (nextIntersection != null && _distance > nextIntersection(_trafficFlow).distance) {
+        nextIntersection = nextIntersection.next(_trafficFlow)
+      }
+      _lane = mobil.lane
+      _acceleration = idm.acceleration
+      _distance += _speed * timeStep + 0.5 * _acceleration * pow(timeStep, 2)
+      _speed += _acceleration * timeStep
+    }
+  }
+
+  private object MovementStrategy {
+    private val strategies: Map[Direction, MovementStrategy] = Map(
+      FORWARD -> ForwardStrategy,
+      LEFT -> ForwardStrategy,
+      RIGHT -> ForwardStrategy,
+      BACK -> ForwardStrategy
+    )
+
+    def apply(direction: Direction) = strategies(direction)
+  }
 }
 
 object VehicleImpl {
