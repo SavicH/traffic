@@ -35,7 +35,7 @@ trait TrafficLight extends TrafficActor {
 
   var color: Color
 
-  def extendColor(delta: Double)
+  def extendColor(delta: Double, updateOpposite: Boolean = true)
 
 }
 
@@ -73,7 +73,12 @@ object TrafficLight {
 
     var currentDuration = 0.0
 
-    override def extendColor(delta: Double): Unit = currentDuration += delta
+    override def extendColor(delta: Double, updateOpposite: Boolean = true): Unit  = {
+      currentDuration += delta
+      if (updateOpposite && opposite != null) {
+        opposite.extendColor(delta, updateOpposite = false) //false to prevent recursion
+      }
+    }
 
     override private[traffic] def act(timeStep: Double): Unit = {
       currentDuration += timeStep
