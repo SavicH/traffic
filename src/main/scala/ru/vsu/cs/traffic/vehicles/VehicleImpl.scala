@@ -31,14 +31,6 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow)
   changeTrafficFlow(_trafficFlow)
 
   private def changeTrafficFlow(trafficFlow: TrafficFlow) = {
-    _speed = 3
-    _acceleration = 0
-    _lane = direction match {
-      case RIGHT => trafficFlow.lanes
-      case BACK => trafficFlow.lanes
-      case _ => VehicleImpl.getRandomLane(trafficFlow.lanes)
-    }
-    _distance = nextIntersection(trafficFlow).distance
     _trafficFlow = trafficFlow
     endOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.end, 1000)
     startOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.start, -1000)
@@ -51,6 +43,14 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow)
           .reduceLeft((i1, i2) => if (i1(_trafficFlow).distance < i2(_trafficFlow).distance) i1 else i2)
     }
     target = if (direction == FORWARD) endOfFlow else VirtualVehicle(_trafficFlow, nextIntersection.location, -minimumGap)
+    _speed = 3
+    _acceleration = 0
+    _lane = direction match {
+      case RIGHT => trafficFlow.lanes
+      case BACK => trafficFlow.lanes
+      case _ => VehicleImpl.getRandomLane(trafficFlow.lanes)
+    }
+    _distance = if (nextIntersection == null) 0 else nextIntersection(trafficFlow).distance
   }
 
   def headVehicle(lane: Int = lane): Vehicle = {
