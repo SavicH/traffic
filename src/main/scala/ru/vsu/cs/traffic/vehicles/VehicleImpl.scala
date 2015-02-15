@@ -2,20 +2,15 @@ package ru.vsu.cs.traffic.vehicles
 
 import scala.util.Random
 
-import ru.vsu.cs.traffic.{Direction, Vehicle, TrafficFlow}
+import ru.vsu.cs.traffic.{Intersection, Direction, Vehicle, TrafficFlow}
 import ru.vsu.cs.traffic.Color._
 import ru.vsu.cs.traffic.Direction._
+import math._
 
 import scala.math._
 
-class VehicleImpl (private var _trafficFlow: TrafficFlow)
+class VehicleImpl(private var _trafficFlow: TrafficFlow)
   extends MOBILVehicle {
-
-  //todo: test values
-//  override val thresholdAcceleration: Double = 0.1
-//  override val normalAcceleration: Double = 0.1
-//  override val brakeDeceleration: Double = 3
-//  override val desiredSpeed: Double = if (random > 0.5) 15 else 7
 
   private var _distance = 0.0
   private var _speed = random * desiredSpeed
@@ -24,20 +19,42 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
 
   val length = 5.0
 
-  private var movementStrategy: MovementStrategy = ForwardStrategy
+  private var direction: Direction = null
+  private var movementStrategy: MovementStrategy = null
 
-  private var endOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.end, 1000)
-  private var startOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.start, -1000)
+  private var nextIntersection: Intersection = null
 
-  private var nextIntersection = {
-    if (_trafficFlow.intersections.isEmpty) null else
-      _trafficFlow.intersections
-      .reduceLeft((i1, i2) => if (i1(_trafficFlow).distance < i2(_trafficFlow).distance) i1 else i2)
+  private var endOfFlow: VirtualVehicle = null
+  private var startOfFlow: VirtualVehicle = null
+  private var target: VirtualVehicle = null
+
+  changeTrafficFlow(_trafficFlow)
+
+  private def changeTrafficFlow(trafficFlow: TrafficFlow) = {
+    _speed = 3
+    _acceleration = 0
+    _lane = direction match {
+      case RIGHT => trafficFlow.lanes
+      case BACK => trafficFlow.lanes
+      case _ => VehicleImpl.getRandomLane(trafficFlow.lanes)
+    }
+    _distance = nextIntersection(trafficFlow).distance
+    _trafficFlow = trafficFlow
+    endOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.end, 1000)
+    startOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.start, -1000)
+    direction = getRandomDirection
+    movementStrategy = MovementStrategy(direction)
+    nextIntersection = {
+      if (_trafficFlow.intersections.isEmpty) null
+      else
+        _trafficFlow.intersections
+          .reduceLeft((i1, i2) => if (i1(_trafficFlow).distance < i2(_trafficFlow).distance) i1 else i2)
+    }
+    target = if (direction == FORWARD) endOfFlow else VirtualVehicle(_trafficFlow, nextIntersection.location, -minimumGap)
   }
 
   def headVehicle(lane: Int = lane): Vehicle = {
-    //todo: remove toList
-    val vehicles = _trafficFlow.vehicles.filter(_.lane == lane).toList :::
+    val vehicles = target :: _trafficFlow.vehicles.filter(_.lane == lane).toList :::
       _trafficFlow.trafficLights.filter(_.color == RED)
         .map(l => VirtualVehicle(trafficFlow, l.location)).toList
     val vehiclesMap = vehicles.map(v => (v.distance, v)).toMap
@@ -69,6 +86,13 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
 
   override def acceleration: Double = _acceleration
 
+  private def getRandomDirection = {
+    if (nextIntersection == null) FORWARD
+    else {
+      FORWARD  //todo
+    }
+  }
+
   private trait MovementStrategy {
     def move(timeStep: Double)
   }
@@ -76,7 +100,9 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
   private object ForwardStrategy extends MovementStrategy {
     override def move(timeStep: Double): Unit = {
       if (nextIntersection != null && _distance > nextIntersection(_trafficFlow).distance) {
+        //todo: debug
         nextIntersection = nextIntersection.next(_trafficFlow)
+        movementStrategy = MovementStrategy(getRandomDirection)
       }
       _lane = mobil.lane
       _acceleration = idm.acceleration
@@ -86,6 +112,7 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
   }
 
   private object MovementStrategy {
+    //todo
     private val strategies: Map[Direction, MovementStrategy] = Map(
       FORWARD -> ForwardStrategy,
       LEFT -> ForwardStrategy,
@@ -95,6 +122,7 @@ class VehicleImpl (private var _trafficFlow: TrafficFlow)
 
     def apply(direction: Direction) = strategies(direction)
   }
+
 }
 
 object VehicleImpl {
