@@ -61,7 +61,7 @@ object TrafficFlow {
     private val probability: Double
     ) extends TrafficFlow {
 
-    private var _vehicles = mutable.ListBuffer[Vehicle]()
+    private var _vehicles = new mutable.HashSet[Vehicle]() //todo: WTF
 
     //private var _neighbour: TrafficFlow = if (_isOneWay) null else TrafficFlow(model, end, start, lanes, probability, TypedActor.self[TrafficFlow])
     private var _neighbour: TrafficFlow = if (_isOneWay) null else TrafficFlow(model, end, start, lanes, probability, this)
@@ -113,7 +113,7 @@ object TrafficFlow {
       if (vehicleSpawnDelay >= VehicleSpawnMinDelay) {
         if (math.random < probability * timeStep) {
           for (i <- 1 to math.ceil(probability * timeStep).toInt) {
-            this += Vehicle(model, this)
+            _vehicles += Vehicle(model, this)
           }
           vehicleSpawnDelay = 0
         }
