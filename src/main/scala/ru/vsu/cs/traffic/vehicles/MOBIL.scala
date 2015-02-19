@@ -11,7 +11,7 @@ class MOBIL(vehicle: MOBILVehicle) {
   private def safetyCriterion(lane: Int): Boolean = {
     vehicle.backVehicle(lane) match {
       case _: VirtualVehicle => true
-      case v: IDMVehicle => v.idm.acceleration(vehicle) > -b
+      case v: IDMVehicle => (v.idm.acceleration(vehicle) > -b)
     }
   }
 

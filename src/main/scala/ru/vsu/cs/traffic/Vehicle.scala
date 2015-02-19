@@ -1,6 +1,6 @@
 package ru.vsu.cs.traffic
 
-import ru.vsu.cs.traffic.util.line
+import ru.vsu.cs.traffic.line.distance2point
 import ru.vsu.cs.traffic.vehicles.VehicleImpl
 
 trait Vehicle extends TrafficActor {
@@ -11,7 +11,7 @@ trait Vehicle extends TrafficActor {
 
   def distance: Double
 
-  def location: Point = line.distance2point(distance, trafficFlow.start, trafficFlow.end)
+  def location: Point = distance2point(distance, trafficFlow.start, trafficFlow.end)
 
   def lane: Int
 

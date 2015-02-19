@@ -1,7 +1,7 @@
 package ru.vsu.cs.traffic
 
 import akka.actor.{TypedProps, TypedActor}
-import ru.vsu.cs.traffic.util.line
+import ru.vsu.cs.traffic.line.direction
 
 import scala.collection.mutable
 

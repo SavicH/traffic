@@ -1,21 +1,17 @@
-package ru.vsu.cs.traffic.util
+package ru.vsu.cs.traffic
 
-import ru.vsu.cs.traffic.{Direction, Point}
-
-import scala.math._
-
-object line {
+package object line {
 
   def getA(start: Point, end: Point) =
-    if (start.x == end.x) Double.NaN else (start.y - end.y)/(start.x - end.x)
+    if (start.x == end.x) Double.NaN else (start.y - end.y) / (start.x - end.x)
 
   def getB(start: Point, end: Point) = start.y - start.x * getA(start, end)
 
   def distance2point(distance: Double, start: Point, end: Point) = {
-    val k = distance/(start -- end)
-//    if ((k < 0) || (k > 1)) {
-//      throw new IllegalArgumentException("The distance must be positive and lesser than length of the segment")
-//    }
+    val k = distance / (start -- end)
+    //    if ((k < 0) || (k > 1)) {
+    //      throw new IllegalArgumentException("The distance must be positive and lesser than length of the segment")
+    //    }
     val x = start.x + k * (end.x - start.x)
     val y = start.y + k * (end.y - start.y)
     new Point(x, y)
@@ -30,16 +26,16 @@ object line {
 
   def intersection(s1: Point, e1: Point, s2: Point, e2: Point) = {
     val a1 = getA(s1, e1)
-    val b1 = getB(s1 ,e1)
+    val b1 = getB(s1, e1)
     val a2 = getA(s2, e2)
     val b2 = getB(s2, e2)
     val p = if (a1.isNaN) Point(s1.x, a2 * s1.x + b2)
-      else if (a2.isNaN) Point(s2.x, a1 * s2.x + b1)
-        else {
-          val x = (b1 - b2)/(a2 - a1)
-          val y = a1 * x + b1
-          Point(x, y)
-        }
+    else if (a2.isNaN) Point(s2.x, a1 * s2.x + b1)
+    else {
+      val x = (b1 - b2) / (a2 - a1)
+      val y = a1 * x + b1
+      Point(x, y)
+    }
     if (isBetween(p, s1, e1) && isBetween(p, s2, e2)) p else null
   }
 
@@ -54,4 +50,5 @@ object line {
     if (r == 0) throw new IllegalArgumentException("Same direction")
     if (r < 0) Direction.RIGHT else Direction.LEFT
   }
+
 }
