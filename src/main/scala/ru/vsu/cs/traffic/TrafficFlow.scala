@@ -1,7 +1,7 @@
 package ru.vsu.cs.traffic
 
 import akka.actor.{TypedProps, TypedActor}
-import ru.vsu.cs.traffic.line.direction
+import ru.vsu.cs.traffic.lines.direction
 
 import scala.collection.mutable
 
@@ -27,7 +27,7 @@ trait TrafficFlow {
 
   private[traffic] def &&(other: TrafficFlow): Intersection
 
-  private[traffic] def <>(other: TrafficFlow): Direction = line.direction(start, end, other.start, other.end)
+  private[traffic] def <>(other: TrafficFlow): Direction = lines.direction(start, end, other.start, other.end)
 
   private[traffic] def +=(v: Vehicle): Unit
 
@@ -84,7 +84,7 @@ object TrafficFlow {
     }
 
     override private[traffic] def &(other: TrafficFlow): Point = {
-      line.intersection(start, end, other.start, other.end)
+      lines.intersection(start, end, other.start, other.end)
     }
 
     override private[traffic] def &&(other: TrafficFlow): Intersection = {

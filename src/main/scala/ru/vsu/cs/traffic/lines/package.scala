@@ -1,6 +1,6 @@
 package ru.vsu.cs.traffic
 
-package object line {
+package object lines {
 
   def getA(start: Point, end: Point) =
     if (start.x == end.x) Double.NaN else (start.y - end.y) / (start.x - end.x)
