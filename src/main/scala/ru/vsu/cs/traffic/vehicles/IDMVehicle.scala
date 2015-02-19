@@ -12,7 +12,7 @@ trait IDMVehicle extends Vehicle {
 
   val brakeDeceleration: Double = 1.5
 
-  val minimumGap: Double = 1
+  val minimalGap: Double = 1
 
   val accelerationExponent: Double = 4.0
 
