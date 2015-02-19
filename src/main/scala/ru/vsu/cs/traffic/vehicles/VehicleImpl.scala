@@ -26,7 +26,7 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow)
   private var endOfFlow: VirtualVehicle = null
   private var startOfFlow: VirtualVehicle = null
 
-  private def target: VirtualVehicle = if (direction == FORWARD) endOfFlow else VirtualVehicle(_trafficFlow, nextIntersection.location, -minimalGap)
+  private def target: VirtualVehicle = if (direction == FORWARD) endOfFlow else VirtualVehicle(_trafficFlow, nextIntersection.location, - minimalGap)
 
   changeTrafficFlow(_trafficFlow)
 
@@ -57,7 +57,7 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow)
   def headVehicle(lane: Int = lane): Vehicle = {
     val vehicles = target :: _trafficFlow.vehicles.filter(_.lane == lane).toList :::
       _trafficFlow.trafficLights.filter(_.color == RED)
-        .map(l => VirtualVehicle(trafficFlow, l.location)).toList
+        .map(l => VirtualVehicle(trafficFlow, l.location, -20)).toList
     val vehiclesMap = vehicles.map(v => (v.distance, v)).toMap
     val distances = vehiclesMap.keys.filter(_ > distance)
     if (distances.isEmpty) endOfFlow else vehiclesMap(distances.min)
@@ -111,10 +111,20 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow)
     }
   }
 
+  private def isGreenLight = nextIntersection(_trafficFlow).color == GREEN
+
+  protected var currentTurningTime = 0.0
+
+  protected val timeToTurnRight = 1.0
+
   private def moveRight(timeStep: Double): Unit = {
-    if (abs(distance - target.distance) < 2 * minimalGap) {
-      println("TURN RIGHT")
-      changeTrafficFlow(nextIntersection(_trafficFlow)(RIGHT))
+    if (abs(distance - target.distance) < 2 * minimalGap && isGreenLight ) {
+      if (currentTurningTime >= timeToTurnRight) {
+        changeTrafficFlow(nextIntersection(_trafficFlow)(RIGHT))
+        currentTurningTime = 0
+      } else {
+        currentTurningTime += timeStep
+      }
     } else {
       basicMovement(timeStep)
     }
