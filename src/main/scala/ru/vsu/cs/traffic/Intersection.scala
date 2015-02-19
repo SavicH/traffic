@@ -12,6 +12,14 @@ trait Intersection {
 
   def apply(flow: TrafficFlow): TrafficLight = trafficLights.find(_(FORWARD) == flow).orNull
 
+  def next(flow: TrafficFlow): Intersection = {
+    val nextIntersections = flow.intersections.filter(_(flow).distance > this(flow).distance)
+    if (nextIntersections.isEmpty) null
+    else
+      nextIntersections.reduceLeft((i1, i2) => if (i1(flow).distance < i2(flow).distance) i1 else i2)
+  }
+
+  override def toString = s"Intersection(location=$location, trafficFlows=$trafficFlows)"
 }
 
 object Intersection {
@@ -25,8 +33,8 @@ object Intersection {
     private val model: TrafficModel,
     first: TrafficFlow,
     second: TrafficFlow
-  )
-  extends Intersection {
+    )
+    extends Intersection {
 
     val location = first & second
 
@@ -38,10 +46,11 @@ object Intersection {
       createTrafficLights(first, second) ::: createTrafficLights(second, first)
     }
 
-    private def createTrafficLights(first: TrafficFlow, second: TrafficFlow) : List[TrafficLight] = {
+    private def createTrafficLights(first: TrafficFlow, second: TrafficFlow): List[TrafficLight] = {
       for {
         f <- List(first, first.neighbour) filter (_ != null)
       } yield TrafficLight(model, f, second, this, trafficLightsColors(first))
     }
   }
+
 }

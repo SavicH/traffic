@@ -10,7 +10,7 @@ class IDM(vehicle: IDMVehicle) {
   private def v0 = vehicle.desiredSpeed
   private def delta = vehicle.accelerationExponent
   private def T = vehicle.timeHeadway
-  private def s0 = vehicle.minimumGap
+  private def s0 = vehicle.minimalGap
 
   private def v = vehicle.speed
 

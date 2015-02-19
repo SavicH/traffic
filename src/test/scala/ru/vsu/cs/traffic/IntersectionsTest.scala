@@ -71,6 +71,20 @@ class IntersectionsTest extends FunSuite {
     assert(i2(f1)(RIGHT) == null)
   }
 
+  test("Next intersection 1") {
+    assert(i1.next(f1) === i2)
+  }
 
+  test("Next intersection 2") {
+    assert(i2.next(f1) === null)
+  }
+
+  test("Next intersection 3") {
+    assert(i2.next(f1.neighbour) === i1)
+  }
+
+  test("Next intersection 4") {
+    assert(i1.next(f1.neighbour) === null)
+  }
 
 }
