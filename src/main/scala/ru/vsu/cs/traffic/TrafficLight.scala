@@ -1,6 +1,7 @@
 package ru.vsu.cs.traffic
 
 import ru.vsu.cs.traffic.Direction._
+import ru.vsu.cs.traffic.events.{ColorChangedEvent, BeforeColorChangedEvent}
 
 sealed trait Color extends Serializable with Product
 
@@ -44,7 +45,7 @@ trait TrafficLight extends TrafficActor {
 object TrafficLight {
 
   def apply(model: TrafficModel, trafficFlows: Map[Direction, TrafficFlow], intersection: Intersection, color: Color): TrafficLight = {
-    new TrafficLightImpl(trafficFlows, intersection, color)
+    new TrafficLightImpl(trafficFlows, intersection, color, model)
   }
 
   def apply(model: TrafficModel, first: TrafficFlow, second: TrafficFlow, intersection: Intersection, color: Color): TrafficLight = {
@@ -56,16 +57,16 @@ object TrafficLight {
       d1 -> second,
       d2 -> second.neighbour
     )
-    new TrafficLightImpl(flows, intersection, color) //todo: actor
+    new TrafficLightImpl(flows, intersection, color, model) //todo: actor
   }
 
   private class TrafficLightImpl (
     private val _trafficFlows: Map[Direction, TrafficFlow],
     val intersection: Intersection,
-    var color: Color)
+    var color: Color,
+    model: TrafficModel)
   extends TrafficLight {
 
-    //todo: should be assigned via constructor
     var durations: Map[Color, Double] = Map(Color.GREEN -> 30, Color.RED -> 30, Color.YELLOW -> 2)
 
     var turnProbabilities: Map[Direction, Double] = Map(FORWARD -> 0.3, RIGHT -> 0.3, LEFT -> 0.3, BACK -> 0.1)
@@ -85,11 +86,21 @@ object TrafficLight {
       }
     }
 
+    val TimeToFireColorChangingEvent = 1.0
+    var isChangingColorEventFired = false
+
     override private[traffic] def act(timeStep: Double): Unit = {
       currentDuration += timeStep
-      if (currentDuration > durations(color)) {
-        currentDuration = currentDuration - durations(color)
+      val duration = durations.getOrElse(color, 0.0)
+      if (!isChangingColorEventFired && currentDuration > duration - TimeToFireColorChangingEvent) {
+        model.fireTrafficLightEvent(BeforeColorChangedEvent(this))
+        isChangingColorEventFired = true
+      }
+      if (currentDuration > duration) {
+        currentDuration = currentDuration - duration
         color = nextColor(color)
+        model.fireTrafficLightEvent(ColorChangedEvent(this))
+        isChangingColorEventFired = false
       }
     }
   }
