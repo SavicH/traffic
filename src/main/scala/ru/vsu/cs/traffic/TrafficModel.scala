@@ -4,6 +4,7 @@ import java.util.TimerTask
 import java.util.Timer
 
 import akka.actor.ActorSystem
+import ru.vsu.cs.traffic.events.{TrafficLightEvent, VehicleEvent}
 
 import scala.collection.mutable
 
@@ -28,6 +29,18 @@ trait TrafficModel {
   def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Double = DefaultSpawnProbability, isOneWay: Boolean = false): TrafficModel
 
   def +=(flow: TrafficFlow): TrafficModel
+
+  type VehicleEventHandler = VehicleEvent => Unit
+
+  var vehicleEventHandler: VehicleEventHandler = null
+
+  type TrafficLightEventHandler = TrafficLightEvent => Unit
+
+  var trafficLightEventHandler: TrafficLightEventHandler = null
+
+  private[traffic] def fireVehicleEvent(event: VehicleEvent) = if (vehicleEventHandler != null) vehicleEventHandler(event)
+
+  private[traffic] def fireTrafficLightEvent(event: TrafficLightEvent) = if (trafficLightEventHandler != null) trafficLightEventHandler(event)
 }
 
 object TrafficModel {
