@@ -2,7 +2,7 @@ package ru.vsu.cs.traffic
 
 import org.scalatest.FunSuite
 import ru.vsu.cs.traffic.Color.{GREEN, RED, YELLOW}
-import ru.vsu.cs.traffic.events.{ColorChangedEvent, BeforeColorChangedEvent}
+import ru.vsu.cs.traffic.events.{VehicleSpawnedEvent, ColorChangedEvent, BeforeColorChangedEvent}
 
 class EventTest extends FunSuite {
 
@@ -33,4 +33,15 @@ class EventTest extends FunSuite {
     model.trafficLights.foreach(_.act(15))
     assert(count == model.trafficLights.length)
   }
+
+  test("Count of VehicleSpawned events") {
+    var count = 0
+    model.vehicleEventHandler = event => if (event.isInstanceOf[VehicleSpawnedEvent]) count += 1
+    model.trafficFlows(0).act(3)
+    model.trafficFlows(0).act(3)
+    model.trafficFlows(0).act(3)
+    assert(count == model.trafficFlows(0).vehicles.length)
+  }
+
+
 }

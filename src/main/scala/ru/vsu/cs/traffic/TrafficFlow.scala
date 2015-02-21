@@ -1,6 +1,7 @@
 package ru.vsu.cs.traffic
 
 import akka.actor.{TypedProps, TypedActor}
+import ru.vsu.cs.traffic.events.VehicleSpawnedEvent
 import ru.vsu.cs.traffic.lines.direction
 
 import scala.collection.mutable
@@ -45,7 +46,7 @@ object TrafficFlow {
     new TrafficFlowImpl(model, start, end, lanes, isOneWay, probability)
   }
 
-  def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, probability: Double, neighbour: TrafficFlow): TrafficFlow = {
+  private def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, probability: Double, neighbour: TrafficFlow): TrafficFlow = {
 //    TypedActor(model.actorSystem).typedActorOf(TypedProps(classOf[TrafficFlow],
 //      new TrafficFlowImpl(model, start, end, lanes, probability, neighbour)))
     new TrafficFlowImpl(model, start, end, lanes, probability, neighbour)
@@ -113,7 +114,9 @@ object TrafficFlow {
       if (vehicleSpawnDelay >= VehicleSpawnMinDelay) {
         if (math.random < probability * timeStep) {
           for (i <- 1 to math.ceil(probability * timeStep).toInt) {
-            _vehicles += Vehicle(model, this)
+            val vehicle = Vehicle(model, this)
+            _vehicles += vehicle
+            model.fireVehicleEvent(VehicleSpawnedEvent(vehicle))
           }
           vehicleSpawnDelay = 0
         }
