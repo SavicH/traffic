@@ -38,13 +38,13 @@ trait TrafficFlow {
 }
 
 object TrafficFlow {
-  def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, isOneWay: Boolean, probability: Double): TrafficFlow = {
+  def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, isOneWay: Boolean, probability: Probability): TrafficFlow = {
 //    TypedActor(model.actorSystem).typedActorOf(TypedProps(classOf[TrafficFlow],
 //      new TrafficFlowImpl(model, start, end, lanes, isOneWay, probability)))
     new TrafficFlowImpl(model, start, end, lanes, isOneWay, probability)
   }
 
-  private def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, probability: Double, neighbour: TrafficFlow): TrafficFlow = {
+  private def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, probability: Probability, neighbour: TrafficFlow): TrafficFlow = {
 //    TypedActor(model.actorSystem).typedActorOf(TypedProps(classOf[TrafficFlow],
 //      new TrafficFlowImpl(model, start, end, lanes, probability, neighbour)))
     new TrafficFlowImpl(model, start, end, lanes, probability, neighbour)
@@ -57,7 +57,7 @@ object TrafficFlow {
     val end: Point,
     val lanes: Int,
     _isOneWay: Boolean,
-    private val probability: Double
+    private val probability: Probability
     ) extends TrafficFlow {
 
     private var _vehicles = new mutable.HashSet[Vehicle]() //todo: WTF
@@ -67,7 +67,7 @@ object TrafficFlow {
 
     private var _intersections = mutable.MutableList[Intersection]()
 
-    def this(model: TrafficModel, start: Point, end: Point, lanes: Int, probability: Double, neighbour: TrafficFlow) = {
+    def this(model: TrafficModel, start: Point, end: Point, lanes: Int, probability: Probability, neighbour: TrafficFlow) = {
       this(model, start, end, lanes, _isOneWay = true, probability) //isOneWay = true to prevent recursion
       _neighbour = neighbour
     }
@@ -106,12 +106,12 @@ object TrafficFlow {
 
     private val VehicleSpawnMinDelay = 2.0
     private var vehicleSpawnDelay = VehicleSpawnMinDelay
-
+    private var time = 0.0
 
     override def act(timeStep: Double) = {
       if (vehicleSpawnDelay >= VehicleSpawnMinDelay) {
-        if (math.random < probability * timeStep) {
-          for (i <- 1 to math.ceil(probability * timeStep).toInt) {
+        if (math.random < probability(time) * timeStep) {
+          for (i <- 1 to math.ceil(probability(time) * timeStep).toInt) {
             val vehicle = Vehicle(model, this)
             _vehicles += vehicle
             model.fireVehicleEvent(VehicleSpawned(vehicle))
@@ -121,6 +121,7 @@ object TrafficFlow {
       } else {
         vehicleSpawnDelay += timeStep
       }
+      time += timeStep
       _vehicles.foreach(_.act(timeStep))
     }
 

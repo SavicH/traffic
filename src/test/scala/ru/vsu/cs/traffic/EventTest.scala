@@ -16,9 +16,9 @@ class EventTest extends FunSuite {
 
   def getModel = {
     val model = TrafficModel(timeStep = 0.5)
-    model.addTrafficFlow(s1, e1, 2, probability = 1)
-    model.addTrafficFlow(s2, e2, 2, probability = 1)
-    model.addTrafficFlow(s3, e3, 2, probability = 1)
+    model.addTrafficFlow(s1, e1, 2, probability = _ => 1)
+    model.addTrafficFlow(s2, e2, 2, probability = _ => 1)
+    model.addTrafficFlow(s3, e3, 2, probability = _ => 1)
     model.trafficLights.foreach(_.durations = Map(RED -> 10.0, GREEN -> 10.0, YELLOW -> 0.0))
     model
   }

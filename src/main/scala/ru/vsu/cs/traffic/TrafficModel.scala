@@ -9,7 +9,7 @@ import scala.collection.mutable
 
 trait TrafficModel {
 
-  val DefaultSpawnProbability = 0.2
+  val DefaultSpawnProbability: Probability = _ => 0.2
 
   private[traffic] val actorSystem: ActorSystem = ActorSystem()
 
@@ -25,7 +25,7 @@ trait TrafficModel {
 
   def vehicles: Seq[Vehicle]
 
-  def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Double = DefaultSpawnProbability, isOneWay: Boolean = false): TrafficModel
+  def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Probability = DefaultSpawnProbability, isOneWay: Boolean = false): TrafficModel
 
   def +=(flow: TrafficFlow): TrafficModel
 
@@ -77,7 +77,7 @@ object TrafficModel {
       } _intersections += flow && otherFlow
     }
 
-    override def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Double, isOneWay: Boolean): TrafficModel = {
+    override def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Probability, isOneWay: Boolean): TrafficModel = {
       if (lanes <= 0) throw new IllegalArgumentException("Lanes count must be positive")
       if (_isRunning) throw new IllegalStateException("Model is already running")
       val flow = TrafficFlow(this, start, end, lanes, isOneWay, probability)
