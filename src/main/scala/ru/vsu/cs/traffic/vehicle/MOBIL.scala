@@ -1,4 +1,4 @@
-package ru.vsu.cs.traffic.vehicles
+package ru.vsu.cs.traffic.vehicle
 
 class MOBIL(vehicle: MOBILVehicle) {
 

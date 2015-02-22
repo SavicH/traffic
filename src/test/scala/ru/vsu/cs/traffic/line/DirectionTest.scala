@@ -1,4 +1,4 @@
-package ru.vsu.cs.traffic.lines
+package ru.vsu.cs.traffic.line
 
 import org.scalatest.FunSuite
 import ru.vsu.cs.traffic.{Direction, Point}

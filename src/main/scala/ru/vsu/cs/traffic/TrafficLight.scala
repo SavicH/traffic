@@ -1,7 +1,7 @@
 package ru.vsu.cs.traffic
 
 import ru.vsu.cs.traffic.Direction._
-import ru.vsu.cs.traffic.events.{BeforeColorChanged, ColorChanged}
+import ru.vsu.cs.traffic.event.{BeforeColorChanged, ColorChanged}
 
 sealed trait Color extends Serializable with Product
 

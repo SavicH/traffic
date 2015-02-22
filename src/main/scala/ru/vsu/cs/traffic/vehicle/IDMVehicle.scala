@@ -1,4 +1,4 @@
-package ru.vsu.cs.traffic.vehicles
+package ru.vsu.cs.traffic.vehicle
 
 import ru.vsu.cs.traffic.Vehicle
 

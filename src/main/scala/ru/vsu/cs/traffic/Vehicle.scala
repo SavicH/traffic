@@ -1,7 +1,7 @@
 package ru.vsu.cs.traffic
 
-import ru.vsu.cs.traffic.lines.distance2point
-import ru.vsu.cs.traffic.vehicles.VehicleImpl
+import ru.vsu.cs.traffic.line.distance2point
+import ru.vsu.cs.traffic.vehicle.VehicleImpl
 
 trait Vehicle extends TrafficActor {
 

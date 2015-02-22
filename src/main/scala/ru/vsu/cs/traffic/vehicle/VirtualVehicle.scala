@@ -1,6 +1,6 @@
-package ru.vsu.cs.traffic.vehicles
+package ru.vsu.cs.traffic.vehicle
 
-import ru.vsu.cs.traffic.{Vehicle, Point, TrafficFlow}
+import ru.vsu.cs.traffic.{Point, TrafficFlow, Vehicle}
 
 class VirtualVehicle(flow: TrafficFlow, point: Point, offset: Double = 0)
   extends Vehicle {

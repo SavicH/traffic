@@ -1,7 +1,7 @@
 package ru.vsu.cs.traffic
 
 import org.scalatest.FunSuite
-import ru.vsu.cs.traffic.vehicles.{VehicleImpl, VirtualVehicle}
+import ru.vsu.cs.traffic.vehicle.{VehicleImpl, VirtualVehicle}
 
 class IDMTest extends FunSuite {
 

@@ -2,8 +2,8 @@ package ru.vsu.cs.traffic
 
 import org.scalatest.FunSuite
 import ru.vsu.cs.traffic.Color.{GREEN, RED, YELLOW}
-import ru.vsu.cs.traffic.events._
-import ru.vsu.cs.traffic.vehicles.VehicleImpl
+import ru.vsu.cs.traffic.event._
+import ru.vsu.cs.traffic.vehicle.VehicleImpl
 
 class EventTest extends FunSuite {
 

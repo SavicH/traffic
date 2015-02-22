@@ -1,6 +1,6 @@
 package ru.vsu.cs.traffic
 
-import ru.vsu.cs.traffic.events.VehicleSpawned
+import ru.vsu.cs.traffic.event.VehicleSpawned
 
 import scala.collection.mutable
 
@@ -26,7 +26,7 @@ trait TrafficFlow {
 
   private[traffic] def &&(other: TrafficFlow): Intersection
 
-  private[traffic] def <>(other: TrafficFlow): Direction = lines.direction(start, end, other.start, other.end)
+  private[traffic] def <>(other: TrafficFlow): Direction = line.direction(start, end, other.start, other.end)
 
   private[traffic] def +=(v: Vehicle): Unit
 
@@ -83,7 +83,7 @@ object TrafficFlow {
     }
 
     override private[traffic] def &(other: TrafficFlow): Point = {
-      lines.intersection(start, end, other.start, other.end)
+      line.intersection(start, end, other.start, other.end)
     }
 
     override private[traffic] def &&(other: TrafficFlow): Intersection = {

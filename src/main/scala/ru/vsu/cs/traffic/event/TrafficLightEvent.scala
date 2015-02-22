@@ -1,4 +1,4 @@
-package ru.vsu.cs.traffic.events
+package ru.vsu.cs.traffic.event
 
 import ru.vsu.cs.traffic.TrafficLight
 

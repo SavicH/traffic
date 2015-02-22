@@ -1,9 +1,9 @@
-package ru.vsu.cs.traffic.vehicles
+package ru.vsu.cs.traffic.vehicle
 
 import ru.vsu.cs.traffic.Color._
 import ru.vsu.cs.traffic.Direction._
 import ru.vsu.cs.traffic._
-import ru.vsu.cs.traffic.events.{IntersectionPassed, LaneChanged, TrafficFlowChanged}
+import ru.vsu.cs.traffic.event.{IntersectionPassed, LaneChanged, TrafficFlowChanged}
 
 import scala.math._
 import scala.util.Random

@@ -1,10 +1,9 @@
 package ru.vsu.cs.traffic
 
-import java.util.TimerTask
-import java.util.Timer
+import java.util.{Timer, TimerTask}
 
 import akka.actor.ActorSystem
-import ru.vsu.cs.traffic.events.{TrafficLightEvent, VehicleEvent}
+import ru.vsu.cs.traffic.event.{TrafficLightEvent, VehicleEvent}
 
 import scala.collection.mutable
 
