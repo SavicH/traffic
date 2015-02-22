@@ -6,7 +6,7 @@ import ru.vsu.cs.traffic.vehicle.{VehicleImpl, VirtualVehicle}
 class IDMTest extends FunSuite {
 
   val model = TrafficModel()
-  model.addTrafficFlow(Point(0, 0), Point(0, 500), 2, isOneWay = true)
+  model.addFlow(Point(0, 0), Point(0, 500), 2, isOneWay = true)
   val flow = model.trafficFlows(0)
 
   val v1 = new VehicleImpl(flow, model) {

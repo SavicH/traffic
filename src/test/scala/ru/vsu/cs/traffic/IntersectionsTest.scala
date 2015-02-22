@@ -12,9 +12,9 @@ class IntersectionsTest extends FunSuite {
   val s3 = Point(11, 3) //(9,5)
   val e3 = Point(7, 7)
   val model = TrafficModel()
-  model.addTrafficFlow(s1, e1, 1)
-  model.addTrafficFlow(s2, e2, 1)
-  model.addTrafficFlow(s3, e3, 1, isOneWay = true)
+  model.addFlow(s1, e1, 1)
+  model.addFlow(s2, e2, 1)
+  model.addFlow(s3, e3, 1, isOneWay = true)
   
   val f1 = findFlow(s1)
   val f2 = findFlow(s2)
