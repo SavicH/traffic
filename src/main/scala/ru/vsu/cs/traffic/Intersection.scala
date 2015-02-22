@@ -19,6 +19,8 @@ trait Intersection {
       nextIntersections.reduceLeft((i1, i2) => if (i1(flow).distance < i2(flow).distance) i1 else i2)
   }
 
+  def extendColor(delta: Double) = trafficLights.foreach(_.extendColor(delta))
+
   override def toString = s"Intersection(location=$location, trafficFlows=$trafficFlows)"
 }
 
