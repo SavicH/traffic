@@ -1,7 +1,7 @@
 package ru.vsu.cs.traffic
 
 import ru.vsu.cs.traffic.Direction._
-import ru.vsu.cs.traffic.events.{ColorChangedEvent, BeforeColorChangedEvent}
+import ru.vsu.cs.traffic.events.{BeforeColorChanged, ColorChanged}
 
 sealed trait Color extends Serializable with Product
 
@@ -14,7 +14,7 @@ object Color {
 
 trait TrafficLight extends TrafficActor {
 
-  import Color._
+  import ru.vsu.cs.traffic.Color._
 
   val nextColor = Map(GREEN -> YELLOW, YELLOW -> RED, RED -> GREEN)
 
@@ -93,13 +93,13 @@ object TrafficLight {
       currentDuration += timeStep
       val duration = durations.getOrElse(color, 0.0)
       if (!isChangingColorEventFired && currentDuration > duration - TimeToFireColorChangingEvent) {
-        model.fireTrafficLightEvent(BeforeColorChangedEvent(this))
+        model.fireTrafficLightEvent(BeforeColorChanged(this))
         isChangingColorEventFired = true
       }
       if (currentDuration > duration) {
         currentDuration = currentDuration - duration
         color = nextColor(color)
-        model.fireTrafficLightEvent(ColorChangedEvent(this))
+        model.fireTrafficLightEvent(ColorChanged(this))
         isChangingColorEventFired = false
       }
     }

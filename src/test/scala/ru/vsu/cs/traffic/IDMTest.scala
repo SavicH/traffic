@@ -1,7 +1,7 @@
 package ru.vsu.cs.traffic
 
 import org.scalatest.FunSuite
-import ru.vsu.cs.traffic.vehicles.{VirtualVehicle, VehicleImpl}
+import ru.vsu.cs.traffic.vehicles.{VehicleImpl, VirtualVehicle}
 
 class IDMTest extends FunSuite {
 
@@ -9,31 +9,31 @@ class IDMTest extends FunSuite {
   model.addTrafficFlow(Point(0, 0), Point(0, 500), 2, isOneWay = true)
   val flow = model.trafficFlows(0)
 
-  val v1 = new VehicleImpl(flow) {
+  val v1 = new VehicleImpl(flow, model) {
     override def lane = 1
     override def distance = 10
     override def speed = 15
   }
 
-  val v2 = new VehicleImpl(flow) {
+  val v2 = new VehicleImpl(flow, model) {
     override def lane = 1
     override def distance = 20
     override def speed = 10
   }
 
-  val v3 = new VehicleImpl(flow) {
+  val v3 = new VehicleImpl(flow, model) {
     override def lane = 1
     override def distance = 30
     override def speed = 1
   }
 
-  val v4 = new VehicleImpl(flow) {
+  val v4 = new VehicleImpl(flow, model) {
     override def lane = 2
     override def distance = 5
     override def speed = 10
   }
 
-  val v5 = new VehicleImpl(flow) {
+  val v5 = new VehicleImpl(flow, model) {
     override def lane = 2
     override def distance = 25
     override def speed = 10

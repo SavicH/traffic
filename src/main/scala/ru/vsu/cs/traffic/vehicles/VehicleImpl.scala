@@ -1,15 +1,17 @@
 package ru.vsu.cs.traffic.vehicles
 
-import scala.util.Random
-
-import ru.vsu.cs.traffic.{Intersection, Direction, Vehicle, TrafficFlow}
 import ru.vsu.cs.traffic.Color._
 import ru.vsu.cs.traffic.Direction._
+import ru.vsu.cs.traffic._
+import ru.vsu.cs.traffic.events.{IntersectionPassed, LaneChanged, TrafficFlowChanged}
 
 import scala.math._
+import scala.util.Random
 
-class VehicleImpl(private var _trafficFlow: TrafficFlow)
+class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
   extends MOBILVehicle {
+
+  val self = this
 
   private var _distance = 0.0
   private var _speed = random * desiredSpeed
@@ -30,9 +32,10 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow)
 
   changeTrafficFlow(_trafficFlow)
 
-  private def changeTrafficFlow(trafficFlow: TrafficFlow) = {
-    _trafficFlow -= this
-    trafficFlow += this
+  protected def changeTrafficFlow(trafficFlow: TrafficFlow) = {
+    model.fireVehicleEvent(TrafficFlowChanged(self, _trafficFlow))
+    _trafficFlow -= self
+    trafficFlow += self
     _speed = 3
     _acceleration = 0
     _lane = direction match {
@@ -72,7 +75,7 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow)
 
   override private[traffic] def act(timeStep: Double): Unit = {
     if (_distance > _trafficFlow.length) {
-      _trafficFlow -= this
+      _trafficFlow -= self
     }
     movementStrategy(timeStep)
   }
@@ -95,7 +98,11 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow)
   }
 
   private def basicMovement(timeStep: Double): Unit = {
-    _lane = mobil.lane
+    val newLane = mobil.lane
+    if (newLane != lane) {
+      model.fireVehicleEvent(LaneChanged(self, _lane))
+      _lane = newLane
+    }
     _acceleration = idm.acceleration
     _distance += _speed * timeStep + 0.5 * _acceleration * pow(timeStep, 2)
     _speed += _acceleration * timeStep
@@ -103,6 +110,7 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow)
 
   private def moveForward(timeStep: Double): Unit = {
     if (nextIntersection != null && _distance > nextIntersection(_trafficFlow).distance) {
+      model.fireVehicleEvent(IntersectionPassed(self, nextIntersection))
       nextIntersection = nextIntersection.next(_trafficFlow)
       direction = getRandomDirection
       movementStrategy = MovementStrategy(direction)

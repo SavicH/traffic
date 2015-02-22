@@ -4,5 +4,5 @@ import ru.vsu.cs.traffic.TrafficLight
 
 trait TrafficLightEvent { }
 
-case class ColorChangedEvent(trafficLight: TrafficLight) extends TrafficLightEvent
-case class BeforeColorChangedEvent(trafficLight: TrafficLight) extends TrafficLightEvent
+case class ColorChanged(trafficLight: TrafficLight) extends TrafficLightEvent
+case class BeforeColorChanged(trafficLight: TrafficLight) extends TrafficLightEvent

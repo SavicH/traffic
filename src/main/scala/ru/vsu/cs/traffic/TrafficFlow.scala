@@ -1,8 +1,6 @@
 package ru.vsu.cs.traffic
 
-import akka.actor.{TypedProps, TypedActor}
-import ru.vsu.cs.traffic.events.VehicleSpawnedEvent
-import ru.vsu.cs.traffic.lines.direction
+import ru.vsu.cs.traffic.events.VehicleSpawned
 
 import scala.collection.mutable
 
@@ -116,7 +114,7 @@ object TrafficFlow {
           for (i <- 1 to math.ceil(probability * timeStep).toInt) {
             val vehicle = Vehicle(model, this)
             _vehicles += vehicle
-            model.fireVehicleEvent(VehicleSpawnedEvent(vehicle))
+            model.fireVehicleEvent(VehicleSpawned(vehicle))
           }
           vehicleSpawnDelay = 0
         }
