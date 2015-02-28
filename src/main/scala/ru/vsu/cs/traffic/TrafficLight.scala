@@ -14,10 +14,6 @@ object Color {
 
 trait TrafficLight extends TrafficActor {
 
-  import ru.vsu.cs.traffic.Color._
-
-  val nextColor = Map(GREEN -> YELLOW, YELLOW -> RED, RED -> GREEN)
-
   val intersection: Intersection
 
   val location = intersection.location
@@ -30,19 +26,23 @@ trait TrafficLight extends TrafficActor {
 
   def apply(direction: Direction): TrafficFlow
 
-  var isEnabled: Boolean = true
-
   var durations: Map[Color, Double]
 
   var turnProbabilities: Map[Direction, Double]
 
   var color: Color
 
-  def extendColor(delta: Double, updateOpposite: Boolean = true)
+  def extendColor(delta: Double)
+
+  def time: Double
 
 }
 
 object TrafficLight {
+
+  import ru.vsu.cs.traffic.Color._
+
+  private val nextColor = Map(GREEN -> YELLOW, YELLOW -> RED, RED -> GREEN)
 
   def apply(model: TrafficModel, trafficFlows: Map[Direction, TrafficFlow], intersection: Intersection, color: Color): TrafficLight = {
     new TrafficLightImpl(trafficFlows, intersection, color, model)
@@ -79,12 +79,9 @@ object TrafficLight {
 
     var currentDuration = 0.0
 
-    override def extendColor(delta: Double, updateOpposite: Boolean = true): Unit  = {
-      currentDuration += delta
-      if (updateOpposite && opposite != null) {
-        opposite.extendColor(delta, updateOpposite = false) //false to prevent recursion
-      }
-    }
+    override def extendColor(delta: Double): Unit  = currentDuration += delta
+
+    override def time = durations.getOrElse(color, 0.0) - currentDuration
 
     val TimeToFireColorChangingEvent = 1.0
     var isChangingColorEventFired = false
