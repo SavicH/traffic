@@ -22,7 +22,7 @@ class MOBIL(vehicle: MOBILVehicle) {
       case v: IDMVehicle => v.idm.acceleration - v.idm.acceleration(vehicle)
     }
     val right = p * dis + a
-    left > right
+    left > 0 && left > right
   }
 
   def lane: Int = {
