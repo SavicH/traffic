@@ -15,6 +15,10 @@ trait TrafficModel {
 
   def run()
 
+  def run(time: Double): Unit
+
+  def stop()
+
   def isRunning: Boolean
 
   def trafficFlows: Seq[TrafficFlow]
@@ -25,7 +29,7 @@ trait TrafficModel {
 
   def vehicles: Seq[Vehicle]
 
-  def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Probability = DefaultSpawnProbability, isOneWay: Boolean = false): TrafficModel
+  def addFlow(start: Point, end: Point, lanes: Int, probability: Probability = DefaultSpawnProbability, isOneWay: Boolean = false): TrafficModel
 
   def +=(flow: TrafficFlow): TrafficModel
 
@@ -59,13 +63,38 @@ object TrafficModel {
     private val timer = new Timer()
 
     override def run() {
+      if (_isRunning) throw new IllegalStateException("Model is already running")
       _isRunning = true
       timer.scheduleAtFixedRate(new TimerTask {
         override def run(): Unit = {
-          trafficFlows.foreach(_.act(timeStep))
-          trafficLights.foreach(_.act(timeStep))
+          if (_isRunning) {
+            act()
+          }
         }
       }, 0, (timeStep * 1000).toInt)
+    }
+
+    private def act(): Unit = {
+      trafficFlows.foreach(_.act(timeStep))
+      trafficLights.foreach(_.act(timeStep))
+    }
+
+    var currentTime = 0.0
+
+    override def run(time: Double): Unit = {
+      if (_isRunning) throw new IllegalStateException("Model is already running")
+      _isRunning = true
+      while (currentTime < time && _isRunning) {
+        act()
+        currentTime += timeStep
+      }
+      _isRunning = false
+      currentTime = 0
+    }
+
+    override def stop(): Unit = {
+      _isRunning = false
+      timer.cancel()
     }
 
     private def addIntersections(flow: TrafficFlow, isOneWay: Boolean) = {
@@ -77,7 +106,7 @@ object TrafficModel {
       } _intersections += flow && otherFlow
     }
 
-    override def addTrafficFlow(start: Point, end: Point, lanes: Int, probability: Probability, isOneWay: Boolean): TrafficModel = {
+    override def addFlow(start: Point, end: Point, lanes: Int, probability: Probability, isOneWay: Boolean): TrafficModel = {
       if (lanes <= 0) throw new IllegalArgumentException("Lanes count must be positive")
       if (_isRunning) throw new IllegalStateException("Model is already running")
       val flow = TrafficFlow(this, start, end, lanes, isOneWay, probability)

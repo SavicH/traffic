@@ -6,7 +6,7 @@ import ru.vsu.cs.traffic.vehicle.VehicleImpl
 class MOBILTest extends FunSuite {
 
   val model = TrafficModel()
-  model.addTrafficFlow(Point(200, 450), Point(600, 450), 2, isOneWay = true)
+  model.addFlow(Point(200, 450), Point(600, 450), 2, isOneWay = true)
   val flow = model.trafficFlows(0)
   val v1 = new VehicleImpl(flow, model) {
     override def lane = 1

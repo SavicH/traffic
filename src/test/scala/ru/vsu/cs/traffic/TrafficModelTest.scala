@@ -13,14 +13,14 @@ class TrafficModelTest extends FunSuite {
 
   test("Add one way traffic flow") {
     new TestModel {
-      assert(model.addTrafficFlow(start, end, lanes, isOneWay = true).
+      assert(model.addFlow(start, end, lanes, isOneWay = true).
         trafficFlows.length === 1)
     }
   }
 
   test("Add two ways traffic flow") {
     new TestModel {
-      assert(model.addTrafficFlow(start, end, lanes, isOneWay = false).
+      assert(model.addFlow(start, end, lanes, isOneWay = false).
         trafficFlows.length === 2)
     }
   }
