@@ -4,7 +4,7 @@ import ru.vsu.cs.traffic.{Point, TrafficModel}
 
 object ExampleDriver extends Driver {
 
-  override def model = {
+  val model = {
     val model = TrafficModel()
     val prob = 0.4
     val lanesCount = 2

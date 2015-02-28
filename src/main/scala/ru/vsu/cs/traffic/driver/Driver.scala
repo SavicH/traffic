@@ -9,7 +9,7 @@ import scala.swing.{MainFrame, SimpleSwingApplication}
 
 trait Driver extends SimpleSwingApplication {
 
-  def model: TrafficModel
+  val model: TrafficModel
 
   lazy val panel = new TrafficModelPanel(model)
 
