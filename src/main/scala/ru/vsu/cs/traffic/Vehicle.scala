@@ -23,6 +23,8 @@ trait Vehicle extends TrafficActor {
   
   val maneuverSpeed = 3
 
+  def direction: Direction
+
   val timeToTurnRight: Double = 0.5
 
   val timeToTurnLeft: Double = 2

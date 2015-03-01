@@ -20,16 +20,14 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
 
   val length = 5.0
 
-  private var direction: Direction = null
+  private var _direction: Direction = null
   private var movementStrategy: MovementStrategy = null
 
   private var nextIntersection: Intersection = null
 
   private var endOfFlow: VirtualVehicle = null
   private var startOfFlow: VirtualVehicle = null
-
-  private def target: VirtualVehicle = if (direction == FORWARD) endOfFlow
-  else VirtualVehicle(_trafficFlow, nextIntersection.location, if (direction != RIGHT) -20 else -minimalGap)
+  private var target: VirtualVehicle = null
 
   changeTrafficFlow(_trafficFlow)
   _speed = random * desiredSpeed
@@ -41,7 +39,7 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
     trafficFlow += self
     _speed = 3
     _acceleration = 0
-    _lane = direction match {
+    _lane = _direction match {
       case RIGHT => trafficFlow.lanes
       case BACK => trafficFlow.lanes
       case _ => VehicleImpl.getRandomLane(trafficFlow.lanes)
@@ -57,8 +55,10 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
     _trafficFlow = trafficFlow
     endOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.end, 1000)
     startOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.start, -1000)
-    direction = getRandomDirection
-    movementStrategy = MovementStrategy(direction)
+    _direction = getRandomDirection
+    movementStrategy = MovementStrategy(_direction)
+    target = if (_direction == FORWARD) endOfFlow
+    else VirtualVehicle(_trafficFlow, nextIntersection.location, -minimalGap)
   }
 
   def headVehicle(lane: Int = lane): Vehicle = {
@@ -94,14 +94,15 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
 
   override def acceleration: Double = _acceleration
 
+  override def direction: Direction = _direction
+
   private def getRandomDirection = {
     if (nextIntersection == null) FORWARD
     else {
       val directions = nextIntersection(_trafficFlow).turnProbabilities.map(_._1).toList
-      val r = random
       val probabilities = nextIntersection(_trafficFlow).turnProbabilities
         .map(_._2).scanLeft(0.0)(_ + _).toList
-      val result = probabilities.filter(_ <= r).max
+      val result = probabilities.filter(_ <= random).max
       directions(probabilities.indexOf(result))
     }
   }
@@ -121,8 +122,8 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
     if (nextIntersection != null && distance > nextIntersection(_trafficFlow).distance) {
       model.fireVehicleEvent(IntersectionPassed(self, nextIntersection))
       nextIntersection = nextIntersection.next(_trafficFlow)
-      direction = getRandomDirection
-      movementStrategy = MovementStrategy(direction)
+      _direction = getRandomDirection
+      movementStrategy = MovementStrategy(_direction)
     } else {
       basicMovement(timeStep)
     }
@@ -145,8 +146,33 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
     }
   }
 
+  private def roadIsClear(): Boolean = {
+    val d = nextIntersection(_trafficFlow.neighbour).distance
+    val safeDistance = 100
+    val forwardVehicles = _trafficFlow.neighbour.vehicles
+      .filter(v =>
+      v.direction == FORWARD &&
+        v.speed > 0.1 &&
+        v.distance > d - safeDistance &&
+        v.distance < d)
+    if (forwardVehicles.isEmpty) true
+    else safeDistance / forwardVehicles
+      .reduceLeft((v1, v2) => if (v1.distance > v2.distance) v1 else v2).speed > timeToTurnLeft
+  }
+
   private def moveLeftAndBack(timeStep: Double) = {
-    //???
+    if (abs(distance - target.distance) < length &&
+      isGreenLight &&
+      roadIsClear()) {
+      if (currentTurningTime >= timeToTurnLeft) {
+        changeTrafficFlow(nextIntersection(_trafficFlow)(_direction))
+        currentTurningTime = 0
+      } else {
+        currentTurningTime += timeStep
+      }
+    } else {
+      basicMovement(timeStep)
+    }
   }
 
   type MovementStrategy = Double => Unit

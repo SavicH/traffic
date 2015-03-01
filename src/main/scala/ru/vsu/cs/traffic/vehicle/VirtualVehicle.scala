@@ -1,5 +1,6 @@
 package ru.vsu.cs.traffic.vehicle
 
+import ru.vsu.cs.traffic.Direction.FORWARD
 import ru.vsu.cs.traffic.{Point, TrafficFlow, Vehicle}
 
 class VirtualVehicle(flow: TrafficFlow, point: Point, offset: Double = 0)
@@ -14,6 +15,8 @@ class VirtualVehicle(flow: TrafficFlow, point: Point, offset: Double = 0)
   override def speed: Double = 0
 
   override def acceleration: Double = 0
+
+  override def direction = FORWARD
 
   override def trafficFlow: TrafficFlow = flow
 
