@@ -77,7 +77,7 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
     if (distances.isEmpty) startOfFlow else vehiclesMap(distances.max).asInstanceOf[IDMVehicle]
   }
 
-  override private[traffic] def act(timeStep: Double): Unit = {
+  override protected[traffic] def act(timeStep: Double): Unit = {
     if (_distance > _trafficFlow.length) {
       _trafficFlow -= self
     }
@@ -97,7 +97,12 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
   private def getRandomDirection = {
     if (nextIntersection == null) FORWARD
     else {
-      if (random > .5) FORWARD else RIGHT //todo
+      val directions = nextIntersection(_trafficFlow).turnProbabilities.map(_._1).toList
+      val r = random
+      val probabilities = nextIntersection(_trafficFlow).turnProbabilities
+        .map(_._2).scanLeft(0.0)(_ + _).toList
+      val result = probabilities.filter(_ <= r).max
+      directions(probabilities.indexOf(result))
     }
   }
 
@@ -141,7 +146,7 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
   }
 
   private def moveLeftAndBack(timeStep: Double) = {
-    ???
+    //???
   }
 
   type MovementStrategy = Double => Unit
