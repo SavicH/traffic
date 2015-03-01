@@ -1,5 +1,6 @@
 package ru.vsu.cs.traffic.vehicle
 
+import ru.vsu.cs.traffic.Direction.{BACK, LEFT, RIGHT}
 import ru.vsu.cs.traffic.Vehicle
 
 class MOBIL(vehicle: MOBILVehicle) {
@@ -20,8 +21,16 @@ class MOBIL(vehicle: MOBILVehicle) {
       vehicle.distance - back.distance > vehicle.length
   }
 
-  private def incentiveCriterion(head: Vehicle, back: Vehicle): Boolean = {
-    val left = vehicle.idm.acceleration(head) - vehicle.idm.acceleration
+  private val DirectionBias = 2.0
+
+  private def directionBias(lane: Int) = {
+    if (lane > vehicle.lane && vehicle.direction == RIGHT) DirectionBias
+    else if (lane < vehicle.lane && (vehicle.direction == LEFT || vehicle.direction == BACK)) DirectionBias
+    else 0.0
+  }
+
+  private def incentiveCriterion(lane: Int, head: Vehicle, back: Vehicle): Boolean = {
+    val left = vehicle.idm.acceleration(head) - vehicle.idm.acceleration + directionBias(lane)
     val dis = back match {
       case _: VirtualVehicle => 0
       case v: IDMVehicle => v.idm.acceleration - v.idm.acceleration(vehicle)
@@ -34,7 +43,7 @@ class MOBIL(vehicle: MOBILVehicle) {
     List(vehicle.lane - 1, vehicle.lane + 1)
       .filter(i => i > 0 && i <= vehicle.trafficFlow.lanes)
       .map(i => (i, vehicle.headVehicle(i), vehicle.backVehicle(i)))
-      .map(i => (safetyCriterion(i._2, i._3) && incentiveCriterion(i._2, i._3), i._1))
+      .map(i => (safetyCriterion(i._2, i._3) && incentiveCriterion(i._1, i._2, i._3), i._1))
       .find(_._1 == true)
       .getOrElse((true, vehicle.lane))
       ._2
