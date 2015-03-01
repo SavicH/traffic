@@ -9,3 +9,7 @@ case class IntersectionPassed(vehicle: Vehicle, intersection: Intersection) exte
 case class TrafficFlowChanged(vehicle: Vehicle, oldFlow: TrafficFlow) extends VehicleEvent
 case class LaneChanged(vehicle: Vehicle, oldLane: Int) extends VehicleEvent
 
+case class VehicleStopped(vehicle: Vehicle) extends VehicleEvent
+
+case class VehicleMoved(vehicle: Vehicle) extends VehicleEvent
+

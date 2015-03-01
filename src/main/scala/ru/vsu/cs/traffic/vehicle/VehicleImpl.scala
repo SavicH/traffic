@@ -3,7 +3,7 @@ package ru.vsu.cs.traffic.vehicle
 import ru.vsu.cs.traffic.Color._
 import ru.vsu.cs.traffic.Direction._
 import ru.vsu.cs.traffic._
-import ru.vsu.cs.traffic.event.{IntersectionPassed, LaneChanged, TrafficFlowChanged}
+import ru.vsu.cs.traffic.event._
 
 import scala.math._
 import scala.util.Random
@@ -113,6 +113,7 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
       model.fireVehicleEvent(LaneChanged(self, _lane))
       _lane = newLane
     }
+    val oldSpeed = _speed
     _acceleration = idm.acceleration
     _speed += _acceleration * timeStep
     if (_speed < 0) {
@@ -120,6 +121,13 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
       _distance -= 0.5 * pow(_speed, 2) * _acceleration
     } else {
       _distance += _speed * timeStep + 0.5 * _acceleration * pow(timeStep, 2)
+    }
+    val liminalSpeed = 0.1
+    if (oldSpeed > liminalSpeed && speed <= liminalSpeed) {
+      model.fireVehicleEvent(VehicleStopped(self))
+    }
+    if (oldSpeed < liminalSpeed && speed >= liminalSpeed) {
+      model.fireVehicleEvent(VehicleMoved(self))
     }
   }
 
