@@ -2,6 +2,7 @@ package ru.vsu.cs.traffic
 
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import ru.vsu.cs.traffic.Color.{GREEN, RED, YELLOW}
+import ru.vsu.cs.traffic.Direction.{BACK, FORWARD, LEFT, RIGHT}
 import ru.vsu.cs.traffic.event._
 import ru.vsu.cs.traffic.vehicle.VehicleImpl
 
@@ -65,11 +66,12 @@ class EventTest extends FunSuite with BeforeAndAfter {
     assert(isTriggered)
   }
 
-  ignore("IntersectionPassed event") {
+  test("IntersectionPassed event") {
     var isTriggered = false
     model.vehicleEventHandler = event => if (event.isInstanceOf[IntersectionPassed]) isTriggered = true
     val flow = model.trafficFlows(0)
-    val dist = model.intersections(0)(flow).distance - 1
+    val dist = model.intersections(0)(flow).distance + 1
+    model.trafficLights.foreach(_.turnProbabilities = Map(FORWARD -> 1, BACK -> 0, LEFT -> 0, RIGHT -> 0))
     val v1 = new VehicleImpl(flow, model) {
       override val speed = 10.0
       override val distance = dist

@@ -118,7 +118,7 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
   }
 
   private def moveForward(timeStep: Double): Unit = {
-    if (nextIntersection != null && _distance > nextIntersection(_trafficFlow).distance) {
+    if (nextIntersection != null && distance > nextIntersection(_trafficFlow).distance) {
       model.fireVehicleEvent(IntersectionPassed(self, nextIntersection))
       nextIntersection = nextIntersection.next(_trafficFlow)
       direction = getRandomDirection
