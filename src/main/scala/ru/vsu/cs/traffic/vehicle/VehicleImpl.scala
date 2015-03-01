@@ -4,6 +4,7 @@ import ru.vsu.cs.traffic.Color._
 import ru.vsu.cs.traffic.Direction._
 import ru.vsu.cs.traffic._
 import ru.vsu.cs.traffic.event._
+import ru.vsu.cs.traffic.util._
 
 import scala.math._
 import scala.util.Random
@@ -122,11 +123,11 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
     } else {
       _distance += _speed * timeStep + 0.5 * _acceleration * pow(timeStep, 2)
     }
-    val liminalSpeed = 0.1
-    if (oldSpeed > liminalSpeed && speed <= liminalSpeed) {
+    val minimalSpeed = 0.1
+    if (oldSpeed > minimalSpeed && speed <= minimalSpeed) {
       model.fireVehicleEvent(VehicleStopped(self))
     }
-    if (oldSpeed < liminalSpeed && speed >= liminalSpeed) {
+    if (oldSpeed < minimalSpeed && speed >= minimalSpeed) {
       model.fireVehicleEvent(VehicleMoved(self))
     }
   }
@@ -148,11 +149,8 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
 
   private def moveRight(timeStep: Double): Unit = {
     if (abs(distance - target.distance) < length && isGreenLight) {
-      if (currentTurningTime >= timeToTurnRight) {
+      currentTurningTime = counter(timeStep, currentTurningTime, timeToTurnRight) {
         changeTrafficFlow(nextIntersection(_trafficFlow)(RIGHT))
-        currentTurningTime = 0
-      } else {
-        currentTurningTime += timeStep
       }
     } else {
       basicMovement(timeStep)
@@ -174,14 +172,9 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
   }
 
   private def moveLeftAndBack(timeStep: Double) = {
-    if (abs(distance - target.distance) < length &&
-      isGreenLight &&
-      roadIsClear()) {
-      if (currentTurningTime >= timeToTurnLeft) {
-        changeTrafficFlow(nextIntersection(_trafficFlow)(_direction))
-        currentTurningTime = 0
-      } else {
-        currentTurningTime += timeStep
+    if (abs(distance - target.distance) < length && isGreenLight && roadIsClear()) {
+      currentTurningTime = counter(timeStep, currentTurningTime, timeToTurnLeft) {
+        changeTrafficFlow(nextIntersection(_trafficFlow)(_direction))  
       }
     } else {
       basicMovement(timeStep)
