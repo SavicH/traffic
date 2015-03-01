@@ -114,8 +114,13 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
       _lane = newLane
     }
     _acceleration = idm.acceleration
-    _distance += _speed * timeStep + 0.5 * _acceleration * pow(timeStep, 2)
     _speed += _acceleration * timeStep
+    if (_speed < 0) {
+      _speed = 0
+      _distance -= 0.5 * pow(_speed, 2) * _acceleration
+    } else {
+      _distance += _speed * timeStep + 0.5 * _acceleration * pow(timeStep, 2)
+    }
   }
 
   private def moveForward(timeStep: Double): Unit = {
