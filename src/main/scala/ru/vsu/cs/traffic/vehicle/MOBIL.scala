@@ -30,12 +30,12 @@ class MOBIL(vehicle: MOBILVehicle) {
   }
 
   private def incentiveCriterion(lane: Int, head: Vehicle, back: Vehicle): Boolean = {
-    val left = vehicle.idm.acceleration(head) - vehicle.idm.acceleration + directionBias(lane)
+    val left = vehicle.idm.acceleration(head) - vehicle.idm.acceleration
     val dis = back match {
       case _: VirtualVehicle => 0
       case v: IDMVehicle => v.idm.acceleration - v.idm.acceleration(vehicle)
     }
-    val right = p * dis + a
+    val right = p * dis + a - directionBias(lane)
     left > 0 && left > right
   }
 
