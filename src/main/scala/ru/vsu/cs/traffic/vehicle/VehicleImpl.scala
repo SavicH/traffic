@@ -14,8 +14,8 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
   val self = this
 
   private var _distance = 0.0
-  private var _speed = random * desiredSpeed
-  private var _lane = VehicleImpl.getRandomLane(_trafficFlow.lanes)
+  private var _speed = 0.0
+  private var _lane = 0
   private var _acceleration = 0.0
 
   val length = 5.0
@@ -28,9 +28,12 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
   private var endOfFlow: VirtualVehicle = null
   private var startOfFlow: VirtualVehicle = null
 
-  private def target: VirtualVehicle = if (direction == FORWARD) endOfFlow else VirtualVehicle(_trafficFlow, nextIntersection.location, - minimalGap)
+  private def target: VirtualVehicle = if (direction == FORWARD) endOfFlow
+  else VirtualVehicle(_trafficFlow, nextIntersection.location, if (direction != RIGHT) -20 else -minimalGap)
 
   changeTrafficFlow(_trafficFlow)
+  _speed = random * desiredSpeed
+  _lane = VehicleImpl.getRandomLane(_trafficFlow.lanes)
 
   protected def changeTrafficFlow(trafficFlow: TrafficFlow) = {
     model.fireVehicleEvent(TrafficFlowChanged(self, _trafficFlow))
@@ -45,9 +48,10 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
     }
     _distance = if (nextIntersection == null) 0 else nextIntersection(trafficFlow).distance + minimalGap
     nextIntersection = {
-      if (trafficFlow.intersections.isEmpty) null
+      if (trafficFlow.intersections.filter(_(trafficFlow).distance > distance).isEmpty) null
       else
         trafficFlow.intersections
+          .filter(_(trafficFlow).distance > distance)
           .reduceLeft((i1, i2) => if (i1(trafficFlow).distance < i2(trafficFlow).distance) i1 else i2)
     }
     _trafficFlow = trafficFlow
@@ -60,7 +64,7 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
   def headVehicle(lane: Int = lane): Vehicle = {
     val vehicles = target :: _trafficFlow.vehicles.filter(_.lane == lane).toList :::
       _trafficFlow.trafficLights.filter(_.color == RED)
-        .map(l => VirtualVehicle(trafficFlow, l.location, -20)).toList
+        .map(l => VirtualVehicle(trafficFlow, l.location)).toList
     val vehiclesMap = vehicles.map(v => (v.distance, v)).toMap
     val distances = vehiclesMap.keys.filter(_ > distance)
     if (distances.isEmpty) endOfFlow else vehiclesMap(distances.min)
@@ -97,7 +101,7 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
     }
   }
 
-  private def basicMovement(timeStep: Double): Unit = {
+  protected def basicMovement(timeStep: Double): Unit = {
     val newLane = mobil.lane
     if (newLane != lane) {
       model.fireVehicleEvent(LaneChanged(self, _lane))
@@ -123,10 +127,8 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
 
   protected var currentTurningTime = 0.0
 
-  protected val timeToTurnRight = 1.0
-
   private def moveRight(timeStep: Double): Unit = {
-    if (abs(distance - target.distance) < 2 * minimalGap && isGreenLight ) {
+    if (abs(distance - target.distance) < length && isGreenLight) {
       if (currentTurningTime >= timeToTurnRight) {
         changeTrafficFlow(nextIntersection(_trafficFlow)(RIGHT))
         currentTurningTime = 0

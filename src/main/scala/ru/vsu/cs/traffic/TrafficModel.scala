@@ -41,6 +41,10 @@ trait TrafficModel {
 
   var trafficLightEventHandler: TrafficLightEventHandler = null
 
+  type TrafficModelEventHandler = () => Unit
+
+  var trafficModelEventHandler: TrafficModelEventHandler = null
+
   private[traffic] def fireVehicleEvent(event: VehicleEvent) = if (vehicleEventHandler != null) vehicleEventHandler(event)
 
   private[traffic] def fireTrafficLightEvent(event: TrafficLightEvent) = if (trafficLightEventHandler != null) trafficLightEventHandler(event)
@@ -77,6 +81,9 @@ object TrafficModel {
     private def act(): Unit = {
       trafficFlows.foreach(_.act(timeStep))
       trafficLights.foreach(_.act(timeStep))
+      if (trafficModelEventHandler != null) {
+        trafficModelEventHandler()
+      }
     }
 
     var currentTime = 0.0

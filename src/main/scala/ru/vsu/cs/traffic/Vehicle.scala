@@ -23,6 +23,12 @@ trait Vehicle extends TrafficActor {
   
   val maneuverSpeed = 3
 
+  val timeToTurnRight: Double = 0.5
+
+  val timeToTurnLeft: Double = 2
+
+  val timeToTurnBack: Double = 2
+
   override def toString = s"Vehicle(length=$length, distance=$distance, location=$location, lane=$lane, speed=$speed, acceleration=$acceleration, trafficFlow=$trafficFlow)"
 }
 
