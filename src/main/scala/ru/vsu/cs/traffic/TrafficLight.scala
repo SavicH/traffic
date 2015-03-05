@@ -57,7 +57,7 @@ object TrafficLight {
       d1 -> second,
       d2 -> second.neighbour
     )
-    new TrafficLightImpl(flows, intersection, color, model) //todo: actor
+    new TrafficLightImpl(flows, intersection, color, model)
   }
 
   private class TrafficLightImpl (
@@ -67,9 +67,9 @@ object TrafficLight {
     model: TrafficModel)
   extends TrafficLight {
 
-    var durations: Map[Color, Double] = Map(Color.GREEN -> 30, Color.RED -> 30, Color.YELLOW -> 2)
+    var durations: Map[Color, Double] = Map(Color.GREEN -> 60, Color.RED -> 60, Color.YELLOW -> 2)
 
-    var turnProbabilities: Map[Direction, Double] = Map(FORWARD -> 0.3, RIGHT -> 0.3, LEFT -> 0.3, BACK -> 0.1)
+    var turnProbabilities: Map[Direction, Double] = Map(FORWARD -> 0.5, RIGHT -> 0.2, LEFT -> 0.2, BACK -> 0.1)
 
     lazy val opposite = intersection.trafficLights.find(this(BACK) == _(FORWARD)).orNull
 
@@ -79,7 +79,10 @@ object TrafficLight {
 
     var currentDuration = 0.0
 
-    override def extendColor(delta: Double): Unit  = currentDuration += delta
+    override def extendColor(delta: Double): Unit = {
+      currentDuration -= delta
+      isChangingColorEventFired = false
+    }
 
     override def time = durations.getOrElse(color, 0.0) - currentDuration
 
@@ -90,8 +93,8 @@ object TrafficLight {
       currentDuration += timeStep
       val duration = durations.getOrElse(color, 0.0)
       if (!isChangingColorEventFired && currentDuration > duration - TimeToFireColorChangingEvent) {
-        model.fireTrafficLightEvent(BeforeColorChanged(this))
         isChangingColorEventFired = true
+        model.fireTrafficLightEvent(BeforeColorChanged(this))
       }
       if (currentDuration > duration) {
         currentDuration = currentDuration - duration
