@@ -11,7 +11,7 @@ trait Driver extends SimpleSwingApplication {
 
   val model: TrafficModel
 
-  lazy val panel = new TrafficModelPanel(model)
+  val panel: TrafficModelPanel
 
   def top = new MainFrame {
     title = "Traffic Simulation"
