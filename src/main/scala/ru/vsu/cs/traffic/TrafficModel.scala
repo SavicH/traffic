@@ -6,6 +6,7 @@ import akka.actor.ActorSystem
 import ru.vsu.cs.traffic.event.{TrafficLightEvent, VehicleEvent}
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 trait TrafficModel {
 
@@ -35,19 +36,19 @@ trait TrafficModel {
 
   type VehicleEventHandler = VehicleEvent => Unit
 
-  var vehicleEventHandler: VehicleEventHandler = null
+  val vehicleEventHandlers = ListBuffer[VehicleEventHandler]()
 
   type TrafficLightEventHandler = TrafficLightEvent => Unit
 
-  var trafficLightEventHandler: TrafficLightEventHandler = null
+  val trafficLightEventHandlers = ListBuffer[TrafficLightEventHandler]()
 
   type TrafficModelEventHandler = () => Unit
 
-  var trafficModelEventHandler: TrafficModelEventHandler = null
+  val trafficModelEventHandlers = ListBuffer[TrafficModelEventHandler]()
 
-  private[traffic] def fireVehicleEvent(event: VehicleEvent) = if (vehicleEventHandler != null) vehicleEventHandler(event)
+  private[traffic] def fireVehicleEvent(event: VehicleEvent) = vehicleEventHandlers.foreach(_(event))
 
-  private[traffic] def fireTrafficLightEvent(event: TrafficLightEvent) = if (trafficLightEventHandler != null) trafficLightEventHandler(event)
+  private[traffic] def fireTrafficLightEvent(event: TrafficLightEvent) = trafficLightEventHandlers.foreach(_(event))
 }
 
 object TrafficModel {
@@ -81,9 +82,7 @@ object TrafficModel {
     private def act(): Unit = {
       trafficFlows.foreach(_.act(timeStep))
       trafficLights.foreach(_.act(timeStep))
-      if (trafficModelEventHandler != null) {
-        trafficModelEventHandler()
-      }
+      trafficModelEventHandlers.foreach(_())
     }
 
     var currentTime = 0.0
