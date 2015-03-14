@@ -34,6 +34,8 @@ trait TrafficModel {
 
   def +=(flow: TrafficFlow): TrafficModel
 
+  val isYellowLightEnabled: Boolean
+
   type VehicleEventHandler = VehicleEvent => Unit
 
   val vehicleEventHandlers = ListBuffer[VehicleEventHandler]()
@@ -55,9 +57,10 @@ object TrafficModel {
 
   def apply(): TrafficModel = new TrafficModelImpl()
 
-  def apply(timeStep: Double): TrafficModel = new TrafficModelImpl(timeStep)
+  def apply(timeStep: Double, isYellowLightEnabled: Boolean = false): TrafficModel = new TrafficModelImpl(timeStep, isYellowLightEnabled)
 
-  private class TrafficModelImpl (val timeStep: Double = 0.025)extends TrafficModel {
+  private class TrafficModelImpl(val timeStep: Double = 0.025, val isYellowLightEnabled: Boolean = false)
+    extends TrafficModel {
 
     private val _trafficFlows = mutable.MutableList[TrafficFlow]()
 
