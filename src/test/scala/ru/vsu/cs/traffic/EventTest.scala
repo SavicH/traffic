@@ -84,7 +84,7 @@ class EventTest extends FunSuite with BeforeAndAfter {
 
   test("ModelActed event") {
     var isTriggered = false
-    model.trafficModelEventHandlers += (() => isTriggered = true)
+    model.trafficModelEventHandlers += (event => isTriggered = true)
     model.run(1)
     assert(isTriggered)
   }

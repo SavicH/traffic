@@ -3,7 +3,7 @@ package ru.vsu.cs.traffic
 import java.util.{Timer, TimerTask}
 
 import akka.actor.ActorSystem
-import ru.vsu.cs.traffic.event.{TrafficLightEvent, VehicleEvent}
+import ru.vsu.cs.traffic.event.{ModelActed, TrafficLightEvent, TrafficModelEvent, VehicleEvent}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -42,7 +42,7 @@ trait TrafficModel {
 
   val trafficLightEventHandlers = ListBuffer[TrafficLightEventHandler]()
 
-  type TrafficModelEventHandler = () => Unit
+  type TrafficModelEventHandler = TrafficModelEvent => Unit
 
   val trafficModelEventHandlers = ListBuffer[TrafficModelEventHandler]()
 
@@ -82,7 +82,8 @@ object TrafficModel {
     private def act(): Unit = {
       trafficFlows.foreach(_.act(timeStep))
       trafficLights.foreach(_.act(timeStep))
-      trafficModelEventHandlers.foreach(_())
+      trafficModelEventHandlers.foreach(_(ModelActed(currentTime)))
+      currentTime += timeStep
     }
 
     var currentTime = 0.0
@@ -92,7 +93,6 @@ object TrafficModel {
       _isRunning = true
       while (currentTime < time && _isRunning) {
         act()
-        currentTime += timeStep
       }
       _isRunning = false
       currentTime = 0
