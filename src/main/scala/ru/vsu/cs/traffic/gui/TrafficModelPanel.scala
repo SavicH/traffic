@@ -1,4 +1,4 @@
-package ru.vsu.cs.traffic.driver
+package ru.vsu.cs.traffic.gui
 
 import java.awt.{Color, Dimension, Graphics2D}
 

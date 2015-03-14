@@ -1,10 +1,10 @@
-package ru.vsu.cs.traffic.driver
+package ru.vsu.cs.traffic.gui
 
 import ru.vsu.cs.traffic.Color._
 import ru.vsu.cs.traffic.Direction._
 import ru.vsu.cs.traffic.{Point, TrafficModel}
 
-object ExampleDriver extends Driver {
+object ExampleApp extends SwingApp {
 
   val model = TrafficModel()
 

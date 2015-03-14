@@ -1,4 +1,4 @@
-package ru.vsu.cs.traffic.driver
+package ru.vsu.cs.traffic.gui
 
 import java.awt
 import java.awt.event.ActionListener
@@ -7,7 +7,7 @@ import ru.vsu.cs.traffic.TrafficModel
 
 import scala.swing.{MainFrame, SimpleSwingApplication}
 
-trait Driver extends SimpleSwingApplication {
+trait SwingApp extends SimpleSwingApplication {
 
   val model: TrafficModel
 
