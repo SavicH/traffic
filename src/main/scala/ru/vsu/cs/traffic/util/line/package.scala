@@ -1,4 +1,6 @@
-package ru.vsu.cs.traffic
+package ru.vsu.cs.traffic.util
+
+import ru.vsu.cs.traffic.{Direction, Point}
 
 package object line {
 

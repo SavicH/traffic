@@ -1,4 +1,4 @@
-package ru.vsu.cs.traffic.line
+package ru.vsu.cs.traffic.util.line
 
 import org.scalatest.FunSuite
 import ru.vsu.cs.traffic.Point

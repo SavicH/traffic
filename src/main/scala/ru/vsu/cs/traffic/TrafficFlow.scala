@@ -26,7 +26,7 @@ trait TrafficFlow {
 
   private[traffic] def &&(other: TrafficFlow): Intersection
 
-  private[traffic] def <>(other: TrafficFlow): Direction = line.direction(start, end, other.start, other.end)
+  private[traffic] def <>(other: TrafficFlow): Direction = util.line.direction(start, end, other.start, other.end)
 
   private[traffic] def +=(v: Vehicle): Unit
 
@@ -83,7 +83,7 @@ object TrafficFlow {
     }
 
     override private[traffic] def &(other: TrafficFlow): Point = {
-      line.intersection(start, end, other.start, other.end)
+      util.line.intersection(start, end, other.start, other.end)
     }
 
     override private[traffic] def &&(other: TrafficFlow): Intersection = {
