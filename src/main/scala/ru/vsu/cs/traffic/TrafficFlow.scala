@@ -3,6 +3,7 @@ package ru.vsu.cs.traffic
 import ru.vsu.cs.traffic.event.VehicleSpawned
 
 import scala.collection.mutable
+import scala.util.Random
 
 trait TrafficFlow {
 
@@ -31,6 +32,10 @@ trait TrafficFlow {
   private[traffic] def +=(v: Vehicle): Unit
 
   private[traffic] def -=(v: Vehicle): Unit
+
+  private val random = new Random(System.nanoTime())
+
+  private[traffic] def randomLane = random.nextInt(lanes) + 1
 
   private[traffic] def act(timeStep: Double)
 
@@ -112,7 +117,7 @@ object TrafficFlow {
       if (vehicleSpawnDelay >= VehicleSpawnMinDelay) {
         if (math.random < probability(time) * timeStep) {
           for (i <- 1 to math.ceil(probability(time) * timeStep).toInt) {
-            val vehicle = Vehicle(model, this)
+            val vehicle = Vehicle(model, this, randomLane)
             _vehicles += vehicle
             model.fireVehicleEvent(VehicleSpawned(vehicle))
           }

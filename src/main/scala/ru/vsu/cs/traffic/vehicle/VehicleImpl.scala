@@ -7,17 +7,16 @@ import ru.vsu.cs.traffic.event._
 import ru.vsu.cs.traffic.util._
 
 import scala.math._
-import scala.util.Random
 
-class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
+class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel, l: Int)
   extends MOBILVehicle {
 
   val self = this
 
   private var _distance = 0.0
   private var _speed = 0.0
-  private var _lane = 0
   private var _acceleration = 0.0
+  private var _lane = 0
 
   val length = 5.0
 
@@ -32,18 +31,18 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
 
   changeTrafficFlow(_trafficFlow)
   _speed = random * desiredSpeed
-  _lane = VehicleImpl.getRandomLane(_trafficFlow.lanes)
+  _lane = l
 
   protected def changeTrafficFlow(trafficFlow: TrafficFlow) = {
     model.fireVehicleEvent(TrafficFlowChanged(self, _trafficFlow))
     _trafficFlow -= self
     trafficFlow += self
-    _speed = 3
+    _speed = maneuverSpeed
     _acceleration = 0
     _lane = _direction match {
       case RIGHT => trafficFlow.lanes
       case BACK => trafficFlow.lanes
-      case _ => VehicleImpl.getRandomLane(trafficFlow.lanes)
+      case _ => _trafficFlow.randomLane
     }
     _distance = if (nextIntersection == null) 0 else nextIntersection(trafficFlow).distance + minimalGap
     nextIntersection = {
@@ -56,16 +55,16 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
     _trafficFlow = trafficFlow
     endOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.end, 1000)
     startOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.start, -1000)
-    _direction = getRandomDirection
+    _direction = randomDirection
     movementStrategy = MovementStrategy(_direction)
     target = if (_direction == FORWARD) endOfFlow
     else VirtualVehicle(_trafficFlow, nextIntersection.location, -minimalGap)
   }
 
   def headVehicle(lane: Int = lane): Vehicle = {
-    val vehicles = target :: _trafficFlow.vehicles.filter(_.lane == lane).toList :::
-      _trafficFlow.trafficLights.filter(_.color == RED)
-        .map(l => VirtualVehicle(trafficFlow, l.location)).toList
+    val vehicles = _trafficFlow.vehicles.filter(_.lane == lane) ++
+      (target :: _trafficFlow.trafficLights.filter(_.color == RED)
+        .map(l => VirtualVehicle(trafficFlow, l.location)).toList)
     val vehiclesMap = vehicles.map(v => (v.distance, v)).toMap
     val distances = vehiclesMap.keys.filter(_ > distance)
     if (distances.isEmpty) endOfFlow else vehiclesMap(distances.min)
@@ -97,12 +96,12 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
 
   override def direction: Direction = _direction
 
-  private def getRandomDirection = {
+  private def randomDirection = {
     if (nextIntersection == null) FORWARD
     else {
-      val directions = nextIntersection(_trafficFlow).turnProbabilities.map(_._1).toList
+      val directions = nextIntersection(_trafficFlow).turnProbabilities.map(_._1).toSeq
       val probabilities = nextIntersection(_trafficFlow).turnProbabilities
-        .map(_._2).scanLeft(0.0)(_ + _).toList
+        .map(_._2).scanLeft(0.0)(_ + _).toSeq
       val result = probabilities.filter(_ <= random).max
       directions(probabilities.indexOf(result))
     }
@@ -136,7 +135,7 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
     if (nextIntersection != null && distance > nextIntersection(_trafficFlow).distance) {
       model.fireVehicleEvent(IntersectionPassed(self, nextIntersection))
       nextIntersection = nextIntersection.next(_trafficFlow)
-      _direction = getRandomDirection
+      _direction = randomDirection
       movementStrategy = MovementStrategy(_direction)
     } else {
       basicMovement(timeStep)
@@ -196,9 +195,4 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel)
 
 }
 
-object VehicleImpl {
-  private val random = new Random(System.nanoTime())
-
-  private def getRandomLane(lanes: Int) = random.nextInt(lanes) + 1
-}
 
