@@ -1,5 +1,6 @@
 package ru.vsu.cs.traffic.vehicle
 
+import akka.actor.{Props, UntypedActor}
 import ru.vsu.cs.traffic.Color._
 import ru.vsu.cs.traffic.Direction._
 import ru.vsu.cs.traffic._
@@ -10,8 +11,6 @@ import scala.math._
 
 class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel, l: Int)
   extends MOBILVehicle {
-
-  val self = this
 
   private var _distance = 0.0
   private var _speed = 0.0
@@ -34,9 +33,9 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel, l:
   _lane = l
 
   protected def changeTrafficFlow(trafficFlow: TrafficFlow) = {
-    model.fireVehicleEvent(TrafficFlowChanged(self, _trafficFlow))
-    _trafficFlow -= self
-    trafficFlow += self
+    model.fireVehicleEvent(TrafficFlowChanged(this, _trafficFlow))
+    _trafficFlow -= this
+    trafficFlow += this
     _speed = maneuverSpeed
     _acceleration = 0
     _lane = _direction match {
@@ -77,11 +76,23 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel, l:
     if (distances.isEmpty) startOfFlow else vehiclesMap(distances.max).asInstanceOf[IDMVehicle]
   }
 
+  private case class Time(timeStep: Double)
+
+  private class InnerActor extends UntypedActor {
+    @throws[Exception](classOf[Exception])
+    override def onReceive(message: Any): Unit = message match {
+      case Time(timeStep) => movementStrategy(timeStep)
+    }
+  }
+
+  private val actor = model.actorSystem.actorOf(Props(new InnerActor))
+
   override protected[traffic] def act(timeStep: Double): Unit = {
     if (_distance > _trafficFlow.length) {
-      _trafficFlow -= self
+      _trafficFlow -= this
     }
-    movementStrategy(timeStep)
+    //movementStrategy(timeStep)
+    actor ! Time(timeStep)
   }
 
   override def lane: Int = _lane
@@ -110,7 +121,7 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel, l:
   protected def basicMovement(timeStep: Double): Unit = {
     val newLane = mobil.lane
     if (newLane != lane) {
-      model.fireVehicleEvent(LaneChanged(self, _lane))
+      model.fireVehicleEvent(LaneChanged(this, _lane))
       _lane = newLane
     }
     val oldSpeed = _speed
@@ -124,16 +135,16 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel, l:
     }
     val minimalSpeed = 0.1
     if (oldSpeed > minimalSpeed && speed <= minimalSpeed) {
-      model.fireVehicleEvent(VehicleStopped(self))
+      model.fireVehicleEvent(VehicleStopped(this))
     }
     if (oldSpeed < minimalSpeed && speed >= minimalSpeed) {
-      model.fireVehicleEvent(VehicleMoved(self))
+      model.fireVehicleEvent(VehicleMoved(this))
     }
   }
 
   private def moveForward(timeStep: Double): Unit = {
     if (nextIntersection != null && distance > nextIntersection(_trafficFlow).distance) {
-      model.fireVehicleEvent(IntersectionPassed(self, nextIntersection))
+      model.fireVehicleEvent(IntersectionPassed(this, nextIntersection))
       nextIntersection = nextIntersection.next(_trafficFlow)
       _direction = randomDirection
       movementStrategy = MovementStrategy(_direction)
@@ -173,7 +184,7 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel, l:
   private def moveLeftAndBack(timeStep: Double) = {
     if (abs(distance - target.distance) < length && isGreenLight && roadIsClear()) {
       currentTurningTime = counter(timeStep, currentTurningTime, timeToTurnLeft) {
-        changeTrafficFlow(nextIntersection(_trafficFlow)(_direction))  
+        changeTrafficFlow(nextIntersection(_trafficFlow)(_direction))
       }
     } else {
       basicMovement(timeStep)
@@ -194,5 +205,4 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel, l:
   }
 
 }
-
 

@@ -31,6 +31,7 @@ class EventTest extends FunSuite with BeforeAndAfter {
     var count = 0
     model.trafficLightEventHandlers += (event => if (event.isInstanceOf[ColorChanged]) count += 1)
     model.trafficLights.foreach(_.act(15))
+    Thread.sleep(100)
     assert(count == model.trafficLights.length)
   }
 
@@ -38,6 +39,7 @@ class EventTest extends FunSuite with BeforeAndAfter {
     var count = 0
     model.trafficLightEventHandlers += (event => if (event.isInstanceOf[BeforeColorChanged]) count += 1)
     model.trafficLights.foreach(_.act(15))
+    Thread.sleep(100)
     assert(count == model.trafficLights.length)
   }
 
@@ -45,6 +47,7 @@ class EventTest extends FunSuite with BeforeAndAfter {
     var count = 0
     model.vehicleEventHandlers += (event => if (event.isInstanceOf[VehicleSpawned]) count += 1)
     model.trafficFlows(0).act(3)
+    Thread.sleep(100)
     assert(count == model.trafficFlows(0).vehicles.length)
   }
 
@@ -63,12 +66,15 @@ class EventTest extends FunSuite with BeforeAndAfter {
     f2 += v1
     f2 += v2
     v1.act(2)
+    Thread.sleep(100)
     assert(isTriggered)
   }
 
   test("IntersectionPassed event") {
     var isTriggered = false
-    model.vehicleEventHandlers += (event => if (event.isInstanceOf[IntersectionPassed]) isTriggered = true)
+    model.vehicleEventHandlers += (
+      event =>
+        if (event.isInstanceOf[IntersectionPassed]) isTriggered = true)
     val flow = model.trafficFlows(0)
     val dist = model.intersections(0)(flow).distance + 1
     model.trafficLights.foreach(_.turnProbabilities = Map(FORWARD -> 1, BACK -> 0, LEFT -> 0, RIGHT -> 0))
@@ -77,6 +83,7 @@ class EventTest extends FunSuite with BeforeAndAfter {
       override val distance = dist
     }
     v1.act(1)
+    Thread.sleep(100)
     assert(isTriggered)
   }
 
@@ -84,6 +91,7 @@ class EventTest extends FunSuite with BeforeAndAfter {
     var isTriggered = false
     model.trafficModelEventHandlers += (event => isTriggered = true)
     model.run(1)
+    Thread.sleep(100)
     assert(isTriggered)
   }
 
