@@ -69,10 +69,7 @@ object TrafficLight {
 
     var turnProbabilities: Map[Direction, Double] = Map(FORWARD -> 0.5, RIGHT -> 0.2, LEFT -> 0.2, BACK -> 0.1)
 
-    private val nextColor = if (model.isYellowLightEnabled)
-      Map(GREEN -> YELLOW, YELLOW -> RED, RED -> GREEN)
-    else
-      Map(GREEN -> RED, RED -> GREEN)
+    private val nextColor = Map(GREEN -> RED, RED -> GREEN)
 
     lazy val opposite = intersection.trafficLights.find(this(BACK) == _(FORWARD)).orNull
 
