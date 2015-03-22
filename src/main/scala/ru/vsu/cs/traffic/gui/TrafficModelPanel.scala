@@ -72,6 +72,7 @@ class TrafficModelPanel(val model: TrafficModel) extends Panel {
       for {
         t <- model.trafficLights
       } drawTrafficLight(t, g)
-      g.drawString(model.trafficLights(0).time.toString.substring(0, 4), 50, 50)
+      val l = model.trafficLights(0).time.toString.length
+      g.drawString(model.trafficLights(0).time.toString.substring(0, math.min(l, 4)), 50, 50)
     }
 }
