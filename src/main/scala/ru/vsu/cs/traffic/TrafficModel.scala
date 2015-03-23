@@ -74,24 +74,35 @@ object TrafficModel {
 
     override private[traffic] def act(timeStep: Double): Unit = throw new UnsupportedOperationException
 
-    override protected def onReceive(message: Any): Unit = {
+    var currentTime = 0.0
+    var doneCount = 0
 
+    override protected def onReceive(message: Any): Unit = message match {
+      case Done() =>
+        doneCount += 1
+        if (doneCount >= vehicles.length) {
+          trafficModelEventHandlers.foreach(_(ModelActed(currentTime)))
+          currentTime += timeStep
+          doneCount = 0
+        }
     }
 
     override def run() {
       if (_isRunning) throw new IllegalStateException("Model is already running")
       _isRunning = true
       import actorSystem.dispatcher
+      implicit val sender = actor
       for (f <- _trafficFlows) {
         actorSystem.scheduler.schedule(
-          Duration.Zero, Duration.create(25, TimeUnit.MILLISECONDS),
-          f.actor, Time(timeStep)) //todo
+          Duration.Zero, Duration.create((timeStep * 1000).toInt, TimeUnit.MILLISECONDS),
+          f.actor, Time(timeStep))
       }
       for (f <- trafficLights) {
         actorSystem.scheduler.schedule(
-          Duration.Zero, Duration.create(25, TimeUnit.MILLISECONDS),
-          f.actor, Time(timeStep)) //todo
+          Duration.Zero, Duration.create((timeStep * 1000).toInt, TimeUnit.MILLISECONDS),
+          f.actor, Time(timeStep))
       }
+      actor ! Done()
     }
 
     private def act(): Unit = {
@@ -100,8 +111,6 @@ object TrafficModel {
       trafficModelEventHandlers.foreach(_(ModelActed(currentTime)))
       currentTime += timeStep
     }
-
-    var currentTime = 0.0
 
     override def run(time: Double): Unit = {
       if (_isRunning) throw new IllegalStateException("Model is already running")

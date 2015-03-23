@@ -4,6 +4,8 @@ import akka.actor.{ActorRef, Props, UntypedActor}
 
 case class Time(timeStep: Double)
 
+case class Done()
+
 trait TrafficActor {
 
   val DefaultTimeStep = 1.0

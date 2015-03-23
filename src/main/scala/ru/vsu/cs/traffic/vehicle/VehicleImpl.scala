@@ -78,7 +78,9 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int
   }
 
   override protected def onReceive(message: Any): Unit = message match {
-    case Time(timeStep) => act(timeStep)
+    case Time(timeStep) =>
+      act(timeStep)
+      model.actor ! Done()
   }
 
   override protected[traffic] def act(timeStep: Double): Unit = {

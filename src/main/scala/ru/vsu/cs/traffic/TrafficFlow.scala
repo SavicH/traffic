@@ -126,7 +126,9 @@ object TrafficFlow {
         vehicleSpawnDelay += timeStep
       }
       time += timeStep
-      _vehicles.foreach(_.act(timeStep))
+      for (v <- _vehicles) {
+        v.actor ! Time(timeStep)
+      }
     }
 
     override def toString: String = {
