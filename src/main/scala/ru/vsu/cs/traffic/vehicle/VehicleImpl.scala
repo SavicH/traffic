@@ -1,6 +1,5 @@
 package ru.vsu.cs.traffic.vehicle
 
-import akka.actor.{Props, UntypedActor}
 import ru.vsu.cs.traffic.Color._
 import ru.vsu.cs.traffic.Direction._
 import ru.vsu.cs.traffic._
@@ -9,8 +8,10 @@ import ru.vsu.cs.traffic.util._
 
 import scala.math._
 
-class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel, l: Int)
+class VehicleImpl(private var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int)
   extends MOBILVehicle {
+
+  override private[traffic] val model: TrafficModel = m
 
   private var _distance = 0.0
   private var _speed = 0.0
@@ -76,23 +77,16 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, model: TrafficModel, l:
     if (distances.isEmpty) startOfFlow else vehiclesMap(distances.max).asInstanceOf[IDMVehicle]
   }
 
-  private case class Time(timeStep: Double)
-
-  private class InnerActor extends UntypedActor {
-    @throws[Exception](classOf[Exception])
-    override def onReceive(message: Any): Unit = message match {
-      case Time(timeStep) => movementStrategy(timeStep)
-    }
+  override protected def onReceive(message: Any): Unit = message match {
+    case Time(timeStep) => act(timeStep)
   }
-
-  private val actor = model.actorSystem.actorOf(Props(new InnerActor))
 
   override protected[traffic] def act(timeStep: Double): Unit = {
     if (_distance > _trafficFlow.length) {
       _trafficFlow -= this
+      model.actorSystem.stop(actor)
     }
-    //movementStrategy(timeStep)
-    actor ! Time(timeStep)
+    movementStrategy(timeStep)
   }
 
   override def lane: Int = _lane

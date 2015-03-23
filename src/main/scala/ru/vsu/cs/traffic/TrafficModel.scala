@@ -1,14 +1,16 @@
 package ru.vsu.cs.traffic
 
-import java.util.{Timer, TimerTask}
+import java.util.Timer
+import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
 import ru.vsu.cs.traffic.event.{ModelActed, TrafficLightEvent, TrafficModelEvent, VehicleEvent}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.duration.Duration
 
-trait TrafficModel {
+trait TrafficModel extends TrafficActor {
 
   val DefaultSpawnProbability: Probability = _ => 0.2
 
@@ -60,6 +62,8 @@ object TrafficModel {
   private class TrafficModelImpl(val timeStep: Double = 0.025)
     extends TrafficModel {
 
+    private[traffic] val model = this
+
     private val _trafficFlows = mutable.MutableList[TrafficFlow]()
 
     private val _intersections = mutable.MutableList[Intersection]()
@@ -68,16 +72,26 @@ object TrafficModel {
 
     private val timer = new Timer()
 
+    override private[traffic] def act(timeStep: Double): Unit = throw new UnsupportedOperationException
+
+    override protected def onReceive(message: Any): Unit = {
+
+    }
+
     override def run() {
       if (_isRunning) throw new IllegalStateException("Model is already running")
       _isRunning = true
-      timer.scheduleAtFixedRate(new TimerTask {
-        override def run(): Unit = {
-          if (_isRunning) {
-            act()
-          }
-        }
-      }, 0, (timeStep * 1000).toInt)
+      import actorSystem.dispatcher
+      for (f <- _trafficFlows) {
+        actorSystem.scheduler.schedule(
+          Duration.Zero, Duration.create(25, TimeUnit.MILLISECONDS),
+          f.actor, Time(timeStep)) //todo
+      }
+      for (f <- trafficLights) {
+        actorSystem.scheduler.schedule(
+          Duration.Zero, Duration.create(25, TimeUnit.MILLISECONDS),
+          f.actor, Time(timeStep)) //todo
+      }
     }
 
     private def act(): Unit = {

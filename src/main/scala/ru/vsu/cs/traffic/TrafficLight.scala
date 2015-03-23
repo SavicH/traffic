@@ -62,7 +62,7 @@ object TrafficLight {
     private val _trafficFlows: Map[Direction, TrafficFlow],
     val intersection: Intersection,
     var color: Color,
-    model: TrafficModel)
+    m: TrafficModel)
   extends TrafficLight {
 
     var durations: Map[Color, Double] = Map(Color.GREEN -> 60, Color.RED -> 60, Color.YELLOW -> 2)
@@ -88,6 +88,12 @@ object TrafficLight {
 
     val TimeToFireColorChangingEvent = 1.0
     var isChangingColorEventFired = false
+
+    override private[traffic] val model: TrafficModel = m
+
+    override protected def onReceive(message: Any): Unit = message match {
+      case Time(timeStep) => act(timeStep)
+    }
 
     override private[traffic] def act(timeStep: Double): Unit = {
       currentDuration += timeStep
