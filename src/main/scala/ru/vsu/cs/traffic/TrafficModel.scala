@@ -1,9 +1,8 @@
 package ru.vsu.cs.traffic
 
-import java.util.Timer
 import java.util.concurrent.TimeUnit
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, Cancellable}
 import ru.vsu.cs.traffic.event.{ModelActed, TrafficLightEvent, TrafficModelEvent, VehicleEvent}
 
 import scala.collection.mutable
@@ -70,8 +69,6 @@ object TrafficModel {
 
     private var _isRunning = false
 
-    private val timer = new Timer()
-
     override private[traffic] def act(timeStep: Double): Unit = throw new UnsupportedOperationException
 
     var currentTime = 0.0
@@ -87,18 +84,20 @@ object TrafficModel {
         }
     }
 
+    private val actorTasks = ListBuffer[Cancellable]()
+
     override def run() {
       if (_isRunning) throw new IllegalStateException("Model is already running")
       _isRunning = true
       import actorSystem.dispatcher
       implicit val sender = actor
       for (f <- _trafficFlows) {
-        actorSystem.scheduler.schedule(
+        actorTasks += actorSystem.scheduler.schedule(
           Duration.Zero, Duration.create((timeStep * 1000).toInt, TimeUnit.MILLISECONDS),
           f.actor, Time(timeStep))
       }
       for (f <- trafficLights) {
-        actorSystem.scheduler.schedule(
+        actorTasks += actorSystem.scheduler.schedule(
           Duration.Zero, Duration.create((timeStep * 1000).toInt, TimeUnit.MILLISECONDS),
           f.actor, Time(timeStep))
       }
@@ -124,7 +123,10 @@ object TrafficModel {
 
     override def stop(): Unit = {
       _isRunning = false
-      timer.cancel()
+      for (t <- actorTasks) {
+        t.cancel()
+      }
+      actorTasks.clear()
     }
 
     private def addIntersections(flow: TrafficFlow, isOneWay: Boolean) = {
