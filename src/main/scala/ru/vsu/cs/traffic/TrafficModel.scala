@@ -69,12 +69,12 @@ object TrafficModel {
 
     private var _isRunning = false
 
-    override private[traffic] def act(timeStep: Double): Unit = throw new UnsupportedOperationException
-
     var currentTime = 0.0
     var doneCount = 0
 
     override protected def onReceive(message: Any): Unit = message match {
+      case Time(step) =>
+        act(step)
       case Done() =>
         doneCount += 1
         if (doneCount >= vehicles.length) {
@@ -84,24 +84,27 @@ object TrafficModel {
         }
     }
 
-    private val actorTasks = ListBuffer[Cancellable]()
+    override private[traffic] def act(timeStep: Double): Unit = {
+      for (f <- _trafficFlows) {
+        f.actor ! Time(timeStep)
+      }
+      for (tl <- trafficLights) {
+        tl.actor ! Time(timeStep)
+      }
+    }
+
+    private var actorTask: Cancellable = null
 
     override def run() {
       if (_isRunning) throw new IllegalStateException("Model is already running")
       _isRunning = true
       import actorSystem.dispatcher
-      implicit val sender = actor
-      for (f <- _trafficFlows) {
-        actorTasks += actorSystem.scheduler.schedule(
-          Duration.Zero, Duration.create((timeStep * 1000).toInt, TimeUnit.MILLISECONDS),
-          f.actor, Time(timeStep))
-      }
-      for (f <- trafficLights) {
-        actorTasks += actorSystem.scheduler.schedule(
-          Duration.Zero, Duration.create((timeStep * 1000).toInt, TimeUnit.MILLISECONDS),
-          f.actor, Time(timeStep))
-      }
-      actor ! Done()
+      actorTask = actorSystem.scheduler.schedule(
+        Duration.Zero,
+        Duration.create((timeStep * 1000).toInt, TimeUnit.MILLISECONDS),
+        actor,
+        Time(timeStep)
+      )
     }
 
     private def act(): Unit = {
@@ -123,10 +126,9 @@ object TrafficModel {
 
     override def stop(): Unit = {
       _isRunning = false
-      for (t <- actorTasks) {
-        t.cancel()
+      if (actorTask != null) {
+        actorTask.cancel()
       }
-      actorTasks.clear()
     }
 
     private def addIntersections(flow: TrafficFlow, isOneWay: Boolean) = {
