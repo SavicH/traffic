@@ -3,7 +3,7 @@ package ru.vsu.cs.traffic
 import java.util.concurrent.TimeUnit
 
 import akka.actor.{ActorSystem, Cancellable}
-import ru.vsu.cs.traffic.event.{ModelActed, TrafficLightEvent, TrafficModelEvent, VehicleEvent}
+import ru.vsu.cs.traffic.event._
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -18,6 +18,8 @@ trait TrafficModel extends TrafficActor {
   def run()
 
   def run(time: Double): Unit
+
+  def asyncRun(time: Double): Unit
 
   def stop()
 
@@ -71,16 +73,29 @@ object TrafficModel {
 
     var currentTime = 0.0
     var doneCount = 0
+    var isRealTime = true
+    var vehiclesCount = 0
 
     override protected def onReceive(message: Any): Unit = message match {
       case Time(step) =>
         act(step)
       case Done() =>
         doneCount += 1
-        if (doneCount >= vehicles.length) {
+        println("done")
+        if (doneCount >= vehiclesCount) {
+          println(currentTime)
           trafficModelEventHandlers.foreach(_(ModelActed(currentTime)))
           currentTime += timeStep
           doneCount = 0
+          if (!isRealTime) {
+            if (currentTime < time) {
+              act(timeStep)
+            } else {
+              _isRunning = false
+              trafficModelEventHandlers.foreach(_(ModelStopped()))
+            }
+          }
+          vehiclesCount = vehicles.length
         }
     }
 
@@ -98,6 +113,7 @@ object TrafficModel {
     override def run() {
       if (_isRunning) throw new IllegalStateException("Model is already running")
       _isRunning = true
+      isRealTime = true
       import actorSystem.dispatcher
       actorTask = actorSystem.scheduler.schedule(
         Duration.Zero,
@@ -117,11 +133,22 @@ object TrafficModel {
     override def run(time: Double): Unit = {
       if (_isRunning) throw new IllegalStateException("Model is already running")
       _isRunning = true
+      isRealTime = true
       while (currentTime < time && _isRunning) {
         act()
       }
       _isRunning = false
       currentTime = 0
+    }
+
+    var time = 0.0
+
+    override def asyncRun(time: Double): Unit = {
+      if (_isRunning) throw new IllegalStateException("Model is already running")
+      _isRunning = true
+      isRealTime = true
+      this.time = time
+      act(timeStep)
     }
 
     override def stop(): Unit = {
@@ -134,7 +161,7 @@ object TrafficModel {
     private def addIntersections(flow: TrafficFlow, isOneWay: Boolean) = {
       for {
         otherFlow <- _trafficFlows
-        point =  flow & otherFlow
+        point = flow & otherFlow
         if point != null
         if !(intersections map (_.location) contains point)
       } _intersections += flow && otherFlow
@@ -173,5 +200,6 @@ object TrafficModel {
         light <- intersection.trafficLights
       } yield light
   }
+
 }
 
