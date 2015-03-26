@@ -62,17 +62,14 @@ object TrafficLight {
     private val _trafficFlows: Map[Direction, TrafficFlow],
     val intersection: Intersection,
     var color: Color,
-    model: TrafficModel)
+    m: TrafficModel)
   extends TrafficLight {
 
     var durations: Map[Color, Double] = Map(Color.GREEN -> 60, Color.RED -> 60, Color.YELLOW -> 2)
 
     var turnProbabilities: Map[Direction, Double] = Map(FORWARD -> 0.5, RIGHT -> 0.2, LEFT -> 0.2, BACK -> 0.1)
 
-    private val nextColor = if (model.isYellowLightEnabled)
-      Map(GREEN -> YELLOW, YELLOW -> RED, RED -> GREEN)
-    else
-      Map(GREEN -> RED, RED -> GREEN)
+    private val nextColor = Map(GREEN -> RED, RED -> GREEN)
 
     lazy val opposite = intersection.trafficLights.find(this(BACK) == _(FORWARD)).orNull
 
@@ -91,6 +88,12 @@ object TrafficLight {
 
     val TimeToFireColorChangingEvent = 1.0
     var isChangingColorEventFired = false
+
+    override private[traffic] val model: TrafficModel = m
+
+    override protected def onReceive(message: Any): Unit = message match {
+      case Time(timeStep) => act(timeStep)
+    }
 
     override private[traffic] def act(timeStep: Double): Unit = {
       currentDuration += timeStep

@@ -1,7 +1,7 @@
 package ru.vsu.cs.traffic.vehicle
 
 import ru.vsu.cs.traffic.Direction.FORWARD
-import ru.vsu.cs.traffic.{Point, TrafficFlow, Vehicle}
+import ru.vsu.cs.traffic.{Point, TrafficFlow, TrafficModel, Vehicle}
 
 class VirtualVehicle(flow: TrafficFlow, point: Point, offset: Double = 0)
   extends Vehicle {
@@ -21,6 +21,10 @@ class VirtualVehicle(flow: TrafficFlow, point: Point, offset: Double = 0)
   override def trafficFlow: TrafficFlow = flow
 
   override val length: Double = 0
+
+  override private[traffic] val model: TrafficModel = null
+
+  override protected def onReceive(message: Any): Unit = throw new UnsupportedOperationException()
 }
 
 object VirtualVehicle {

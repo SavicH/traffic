@@ -1,14 +1,15 @@
 package ru.vsu.cs.traffic
 
-import java.util.{Timer, TimerTask}
+import java.util.concurrent.TimeUnit
 
-import akka.actor.ActorSystem
-import ru.vsu.cs.traffic.event.{ModelActed, TrafficLightEvent, TrafficModelEvent, VehicleEvent}
+import akka.actor.{ActorSystem, Cancellable}
+import ru.vsu.cs.traffic.event._
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.duration.Duration
 
-trait TrafficModel {
+trait TrafficModel extends TrafficActor {
 
   val DefaultSpawnProbability: Probability = _ => 0.2
 
@@ -17,6 +18,8 @@ trait TrafficModel {
   def run()
 
   def run(time: Double): Unit
+
+  def asyncRun(time: Double): Unit
 
   def stop()
 
@@ -33,8 +36,6 @@ trait TrafficModel {
   def addFlow(start: Point, end: Point, lanes: Int, probability: Probability = DefaultSpawnProbability, isOneWay: Boolean = false): TrafficModel
 
   def +=(flow: TrafficFlow): TrafficModel
-
-  val isYellowLightEnabled: Boolean
 
   type VehicleEventHandler = VehicleEvent => Unit
 
@@ -57,10 +58,12 @@ object TrafficModel {
 
   def apply(): TrafficModel = new TrafficModelImpl()
 
-  def apply(timeStep: Double, isYellowLightEnabled: Boolean = false): TrafficModel = new TrafficModelImpl(timeStep, isYellowLightEnabled)
+  def apply(timeStep: Double): TrafficModel = new TrafficModelImpl(timeStep)
 
-  private class TrafficModelImpl(val timeStep: Double = 0.025, val isYellowLightEnabled: Boolean = false)
+  private class TrafficModelImpl(val timeStep: Double = 0.025)
     extends TrafficModel {
+
+    private[traffic] val model = this
 
     private val _trafficFlows = mutable.MutableList[TrafficFlow]()
 
@@ -68,18 +71,56 @@ object TrafficModel {
 
     private var _isRunning = false
 
-    private val timer = new Timer()
+    var currentTime = 0.0
+    var doneCount = 0
+    var isRealTime = true
+    var vehiclesCount = 0
+
+    override protected def onReceive(message: Any): Unit = message match {
+      case Time(step) =>
+        act(step)
+      case Done() =>
+        doneCount += 1
+        println("done")
+        if (doneCount >= vehiclesCount) {
+          println(currentTime)
+          trafficModelEventHandlers.foreach(_(ModelActed(currentTime)))
+          currentTime += timeStep
+          doneCount = 0
+          if (!isRealTime) {
+            if (currentTime < time) {
+              act(timeStep)
+            } else {
+              _isRunning = false
+              trafficModelEventHandlers.foreach(_(ModelStopped()))
+            }
+          }
+          vehiclesCount = vehicles.length
+        }
+    }
+
+    override private[traffic] def act(timeStep: Double): Unit = {
+      for (f <- _trafficFlows) {
+        f.actor ! Time(timeStep)
+      }
+      for (tl <- trafficLights) {
+        tl.actor ! Time(timeStep)
+      }
+    }
+
+    private var actorTask: Cancellable = null
 
     override def run() {
       if (_isRunning) throw new IllegalStateException("Model is already running")
       _isRunning = true
-      timer.scheduleAtFixedRate(new TimerTask {
-        override def run(): Unit = {
-          if (_isRunning) {
-            act()
-          }
-        }
-      }, 0, (timeStep * 1000).toInt)
+      isRealTime = true
+      import actorSystem.dispatcher
+      actorTask = actorSystem.scheduler.schedule(
+        Duration.Zero,
+        Duration.create((timeStep * 1000).toInt, TimeUnit.MILLISECONDS),
+        actor,
+        Time(timeStep)
+      )
     }
 
     private def act(): Unit = {
@@ -89,11 +130,10 @@ object TrafficModel {
       currentTime += timeStep
     }
 
-    var currentTime = 0.0
-
     override def run(time: Double): Unit = {
       if (_isRunning) throw new IllegalStateException("Model is already running")
       _isRunning = true
+      isRealTime = true
       while (currentTime < time && _isRunning) {
         act()
       }
@@ -101,15 +141,27 @@ object TrafficModel {
       currentTime = 0
     }
 
+    var time = 0.0
+
+    override def asyncRun(time: Double): Unit = {
+      if (_isRunning) throw new IllegalStateException("Model is already running")
+      _isRunning = true
+      isRealTime = true
+      this.time = time
+      act(timeStep)
+    }
+
     override def stop(): Unit = {
       _isRunning = false
-      timer.cancel()
+      if (actorTask != null) {
+        actorTask.cancel()
+      }
     }
 
     private def addIntersections(flow: TrafficFlow, isOneWay: Boolean) = {
       for {
         otherFlow <- _trafficFlows
-        point =  flow & otherFlow
+        point = flow & otherFlow
         if point != null
         if !(intersections map (_.location) contains point)
       } _intersections += flow && otherFlow
@@ -148,5 +200,6 @@ object TrafficModel {
         light <- intersection.trafficLights
       } yield light
   }
+
 }
 

@@ -5,7 +5,7 @@ import ru.vsu.cs.traffic.event.VehicleSpawned
 import scala.collection.mutable
 import scala.util.Random
 
-trait TrafficFlow {
+trait TrafficFlow extends TrafficActor {
 
   val start: Point
 
@@ -37,27 +37,21 @@ trait TrafficFlow {
 
   private[traffic] def randomLane = random.nextInt(lanes) + 1
 
-  private[traffic] def act(timeStep: Double)
-
   protected def ++=(intersection: Intersection): Unit
 }
 
 object TrafficFlow {
   def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, isOneWay: Boolean, probability: Probability): TrafficFlow = {
-//    TypedActor(model.actorSystem).typedActorOf(TypedProps(classOf[TrafficFlow],
-//      new TrafficFlowImpl(model, start, end, lanes, isOneWay, probability)))
     new TrafficFlowImpl(model, start, end, lanes, isOneWay, probability)
   }
 
   private def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, probability: Probability, neighbour: TrafficFlow): TrafficFlow = {
-//    TypedActor(model.actorSystem).typedActorOf(TypedProps(classOf[TrafficFlow],
-//      new TrafficFlowImpl(model, start, end, lanes, probability, neighbour)))
     new TrafficFlowImpl(model, start, end, lanes, probability, neighbour)
   }
 
   private class TrafficFlowImpl
   (
-    private val model: TrafficModel,
+    m: TrafficModel,
     val start: Point,
     val end: Point,
     val lanes: Int,
@@ -67,8 +61,7 @@ object TrafficFlow {
 
     private var _vehicles = new mutable.HashSet[Vehicle]() //todo: WTF
 
-    //private var _neighbour: TrafficFlow = if (_isOneWay) null else TrafficFlow(model, end, start, lanes, probability, TypedActor.self[TrafficFlow])
-    private var _neighbour: TrafficFlow = if (_isOneWay) null else TrafficFlow(model, end, start, lanes, probability, this)
+    private var _neighbour: TrafficFlow = if (_isOneWay) null else TrafficFlow(m, end, start, lanes, probability, this)
 
     private var _intersections = mutable.MutableList[Intersection]()
 
@@ -95,7 +88,6 @@ object TrafficFlow {
       val point = this & other
       if (point == null) null
       else {
-        //val intersection = Intersection(model, TypedActor.self, other)
         val intersection = Intersection(model, this, other)
         this ++= intersection
         other ++= intersection
@@ -113,6 +105,13 @@ object TrafficFlow {
     private var vehicleSpawnDelay = VehicleSpawnMinDelay
     private var time = 0.0
 
+
+    override private[traffic] val model: TrafficModel = m
+
+    override protected def onReceive(message: Any): Unit = message match {
+      case Time(timeStep) => act(timeStep)
+    }
+
     override def act(timeStep: Double) = {
       if (vehicleSpawnDelay >= VehicleSpawnMinDelay) {
         if (math.random < probability(time) * timeStep) {
@@ -127,7 +126,9 @@ object TrafficFlow {
         vehicleSpawnDelay += timeStep
       }
       time += timeStep
-      _vehicles.foreach(_.act(timeStep))
+      for (v <- _vehicles) {
+        v.actor ! Time(timeStep)
+      }
     }
 
     override def toString: String = {
