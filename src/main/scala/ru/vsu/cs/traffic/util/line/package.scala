@@ -1,6 +1,9 @@
 package ru.vsu.cs.traffic.util
 
+import ru.vsu.cs.traffic.Direction._
 import ru.vsu.cs.traffic.{Direction, Point}
+
+import scala.math.signum
 
 package object line {
 
@@ -49,8 +52,8 @@ package object line {
 
   def direction(s1: Point, e1: Point, s2: Point, e2: Point): Direction = {
     val r = (s1.x - e1.x) * (s2.y - e2.y) - (s1.y - e1.y) * (s2.x - e2.x)
-    if (r == 0) throw new IllegalArgumentException("Same direction")
-    if (r < 0) Direction.RIGHT else Direction.LEFT
+    if (r == 0) if (signum(s1.x - e1.x) == signum(s2.x - e2.x) && signum(s1.y - e1.y) == signum(signum(s2.y - e2.y))) FORWARD else BACK
+    else if (r < 0) RIGHT else LEFT
   }
 
 }

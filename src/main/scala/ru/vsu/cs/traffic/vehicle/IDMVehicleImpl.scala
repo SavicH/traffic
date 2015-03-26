@@ -30,15 +30,16 @@ class IDMVehicleImpl(protected var _trafficFlow: TrafficFlow, m: TrafficModel, l
   _lane = l
 
   protected def changeTrafficFlow(trafficFlow: TrafficFlow) = {
-    model.fireVehicleEvent(TrafficFlowChanged(this, _trafficFlow))
-    _trafficFlow -= this
-    trafficFlow += this
+    val oldFlow = _trafficFlow
+    _trafficFlow = trafficFlow
+    model.fireVehicleEvent(TrafficFlowChanged(this, oldFlow, oldFlow <> _trafficFlow))
+    oldFlow -= this
+    _trafficFlow += this
     _speed = maneuverSpeed
     _acceleration = 0
     _lane = getLane
     _distance = if (_nextIntersection == null) 0 else _nextIntersection(trafficFlow).distance + minimalGap
     _nextIntersection = getNextIntersection
-    _trafficFlow = trafficFlow
     _direction = randomDirection
     _movementStrategy = MovementStrategy(_direction)
     _target = if (_direction == FORWARD) trafficFlow.virtualEnd

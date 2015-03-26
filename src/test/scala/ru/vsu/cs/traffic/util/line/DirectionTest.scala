@@ -1,6 +1,7 @@
 package ru.vsu.cs.traffic.util.line
 
 import org.scalatest.FunSuite
+import ru.vsu.cs.traffic.Direction._
 import ru.vsu.cs.traffic.{Direction, Point}
 
 class DirectionTest extends FunSuite {
@@ -29,10 +30,12 @@ class DirectionTest extends FunSuite {
     assert(direction(q0, q1, p0, p4) === Direction.LEFT)
   }
 
-  test("Same direction") {
-    intercept[IllegalArgumentException] {
-      direction(q0, q1, q1, q0)
-    }
+  test("Direction BACK") {
+    assert(direction(q0, q1, q1, q0) == BACK)
+  }
+
+  test("Direction FORWARD") {
+    assert(direction(q0, q1, q0, q1) == FORWARD)
   }
 
 }
