@@ -3,6 +3,7 @@ package ru.vsu.cs.traffic
 import java.util.concurrent.TimeUnit
 
 import akka.actor.{ActorSystem, Cancellable}
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import ru.vsu.cs.traffic.event._
 
 import scala.collection.mutable
@@ -13,7 +14,11 @@ trait TrafficModel extends TrafficActor {
 
   val DefaultSpawnProbability: Probability = _ => 0.2
 
-  private[traffic] val actorSystem: ActorSystem = ActorSystem()
+  private val config = ConfigFactory.load()
+    .withValue("akka.loglevel", ConfigValueFactory.fromAnyRef("OFF"))
+    .withValue("akka.stdout-loglevel", ConfigValueFactory.fromAnyRef("OFF"))
+
+  private[traffic] val actorSystem: ActorSystem = ActorSystem("system", config)
 
   def run()
 
