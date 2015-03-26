@@ -113,12 +113,16 @@ object TrafficFlow {
       case Time(timeStep) => act(timeStep)
     }
 
+    private val lastVehicles = mutable.Map[Int, Vehicle]()
+
     override def act(timeStep: Double) = {
       if (vehicleSpawnDelay >= VehicleSpawnMinDelay) {
         if (math.random < probability(time) * timeStep) {
           for (i <- 1 to math.ceil(probability(time) * timeStep).toInt) {
-            val vehicle = Vehicle(model, this, randomLane)
+            val lane = randomLane
+            val vehicle = Vehicle(model, this, lane, lastVehicles.getOrElse(lane, null))
             _vehicles += vehicle
+            lastVehicles(lane) = vehicle
             model.fireVehicleEvent(VehicleSpawned(vehicle))
           }
           vehicleSpawnDelay = 0

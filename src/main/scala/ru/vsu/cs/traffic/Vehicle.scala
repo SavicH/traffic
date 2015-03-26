@@ -1,7 +1,7 @@
 package ru.vsu.cs.traffic
 
 import ru.vsu.cs.traffic.util.line
-import ru.vsu.cs.traffic.vehicle.VehicleImpl
+import ru.vsu.cs.traffic.vehicle.{SimpleVehicle, VehicleImpl}
 
 trait Vehicle extends TrafficActor {
 
@@ -35,7 +35,10 @@ trait Vehicle extends TrafficActor {
 }
 
 object Vehicle {
-  def apply(model: TrafficModel, trafficFlow: TrafficFlow, lane: Int) = {
-    new VehicleImpl(trafficFlow, model, lane)
+  def apply(model: TrafficModel, trafficFlow: TrafficFlow, lane: Int, head: Vehicle = null) = {
+    if (model.isSimple)
+      new SimpleVehicle(trafficFlow, model, head, lane)
+    else
+      new VehicleImpl(trafficFlow, model, lane)
   }
 }

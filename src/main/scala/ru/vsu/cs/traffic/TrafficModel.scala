@@ -35,6 +35,8 @@ trait TrafficModel extends TrafficActor {
 
   def currentTime: Double
 
+  def isSimple: Boolean
+
   def addFlow(start: Point, end: Point, lanes: Int, probability: Probability = DefaultSpawnProbability, isOneWay: Boolean = false, secondProbability: Probability = null): TrafficModel
 
   def +=(flow: TrafficFlow): TrafficModel
@@ -60,9 +62,9 @@ object TrafficModel {
 
   def apply(): TrafficModel = new TrafficModelImpl()
 
-  def apply(timeStep: Double): TrafficModel = new TrafficModelImpl(timeStep)
+  def apply(timeStep: Double, isSimple: Boolean = false): TrafficModel = new TrafficModelImpl(timeStep, isSimple)
 
-  private class TrafficModelImpl(val timeStep: Double = 0.025)
+  private class TrafficModelImpl(val timeStep: Double = 0.025, val isSimple: Boolean = false)
     extends TrafficModel {
 
     private[traffic] val model = this

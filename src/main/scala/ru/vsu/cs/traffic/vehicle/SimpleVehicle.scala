@@ -1,0 +1,32 @@
+package ru.vsu.cs.traffic.vehicle
+
+import ru.vsu.cs.traffic.Color.RED
+import ru.vsu.cs.traffic.{Direction, TrafficFlow, TrafficModel, Vehicle}
+
+//todo: refactor VehicleImpl class
+class SimpleVehicle(tf: TrafficFlow, model: TrafficModel, h: Vehicle, lane: Int) extends VehicleImpl(tf, model, lane) {
+
+  private class DummyMOBIL extends MOBIL(this) {
+    override def lane: Int = SimpleVehicle.this.lane
+  }
+
+  override val mobil: MOBIL = new DummyMOBIL
+
+  val head: Vehicle = if (h == null) endOfFlow else h
+
+  override def headVehicle(lane: Int): Vehicle = {
+    val lights = trafficFlow.trafficLights
+      .filter(l => l.color == RED && l.distance < head.distance && l.distance > distance)
+    if (lights.nonEmpty) VirtualVehicle(trafficFlow, lights.reduceLeft((t1, t2) => if (t1.distance < t2.distance) t1 else t2).location, -20)
+    else if (trafficFlow.vehicles.contains(head)) head
+    else endOfFlow
+  }
+
+  override protected[traffic] def act(timeStep: Double): Unit = {
+    if (distance > trafficFlow.length + 500) {
+      trafficFlow -= this
+      model.actorSystem.stop(actor)
+    }
+    MovementStrategy(Direction.FORWARD)(timeStep)
+  }
+}

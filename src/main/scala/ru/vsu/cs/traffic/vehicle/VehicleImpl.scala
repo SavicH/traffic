@@ -13,20 +13,20 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int
 
   override private[traffic] val model: TrafficModel = m
 
-  private var _distance = 0.0
-  private var _speed = 0.0
-  private var _acceleration = 0.0
-  private var _lane = 0
+  protected var _distance = 0.0
+  protected var _speed = 0.0
+  protected var _acceleration = 0.0
+  protected var _lane = 0
 
   val length = 5.0
 
-  private var _direction: Direction = null
-  private var movementStrategy: MovementStrategy = null
+  protected var _direction: Direction = null
+  protected var movementStrategy: MovementStrategy = null
 
   private var nextIntersection: Intersection = null
 
-  private var endOfFlow: VirtualVehicle = null
-  private var startOfFlow: VirtualVehicle = null
+  protected var endOfFlow: VirtualVehicle = null
+  protected var startOfFlow: VirtualVehicle = null
   private var target: VirtualVehicle = null
 
   changeTrafficFlow(_trafficFlow)
@@ -187,9 +187,9 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int
     }
   }
 
-  type MovementStrategy = Double => Unit
+  protected type MovementStrategy = Double => Unit
 
-  private object MovementStrategy {
+  protected object MovementStrategy {
     private val strategies: Map[Direction, MovementStrategy] = Map(
       FORWARD -> moveForward,
       LEFT -> moveLeftAndBack,
