@@ -41,8 +41,8 @@ trait TrafficFlow extends TrafficActor {
 }
 
 object TrafficFlow {
-  def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, isOneWay: Boolean, probability: Probability): TrafficFlow = {
-    new TrafficFlowImpl(model, start, end, lanes, isOneWay, probability)
+  def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, isOneWay: Boolean, probability: Probability, neighbourProbability: Probability = null): TrafficFlow = {
+    new TrafficFlowImpl(model, start, end, lanes, isOneWay, probability, neighbourProbability)
   }
 
   private def apply(model: TrafficModel, start: Point, end: Point, lanes: Int, probability: Probability, neighbour: TrafficFlow): TrafficFlow = {
@@ -56,17 +56,18 @@ object TrafficFlow {
     val end: Point,
     val lanes: Int,
     _isOneWay: Boolean,
-    private val probability: Probability
+    private val probability: Probability,
+    secondProbability: Probability
     ) extends TrafficFlow {
 
     private var _vehicles = new mutable.HashSet[Vehicle]() //todo: WTF
 
-    private var _neighbour: TrafficFlow = if (_isOneWay) null else TrafficFlow(m, end, start, lanes, probability, this)
+    private var _neighbour: TrafficFlow = if (_isOneWay) null else TrafficFlow(m, end, start, lanes, if (secondProbability != null) secondProbability else probability, this)
 
     private var _intersections = mutable.MutableList[Intersection]()
 
     def this(model: TrafficModel, start: Point, end: Point, lanes: Int, probability: Probability, neighbour: TrafficFlow) = {
-      this(model, start, end, lanes, _isOneWay = true, probability) //isOneWay = true to prevent recursion
+      this(model, start, end, lanes, _isOneWay = true, probability, null) //isOneWay = true to prevent recursion
       _neighbour = neighbour
     }
 

@@ -35,7 +35,7 @@ trait TrafficModel extends TrafficActor {
 
   def currentTime: Double
 
-  def addFlow(start: Point, end: Point, lanes: Int, probability: Probability = DefaultSpawnProbability, isOneWay: Boolean = false): TrafficModel
+  def addFlow(start: Point, end: Point, lanes: Int, probability: Probability = DefaultSpawnProbability, isOneWay: Boolean = false, secondProbability: Probability = null): TrafficModel
 
   def +=(flow: TrafficFlow): TrafficModel
 
@@ -167,10 +167,10 @@ object TrafficModel {
       } _intersections += flow && otherFlow
     }
 
-    override def addFlow(start: Point, end: Point, lanes: Int, probability: Probability, isOneWay: Boolean): TrafficModel = {
+    override def addFlow(start: Point, end: Point, lanes: Int, probability: Probability, isOneWay: Boolean, secondProbability: Probability = null): TrafficModel = {
       if (lanes <= 0) throw new IllegalArgumentException("Lanes count must be positive")
       if (_isRunning) throw new IllegalStateException("Model is already running")
-      val flow = TrafficFlow(this, start, end, lanes, isOneWay, probability)
+      val flow = TrafficFlow(this, start, end, lanes, isOneWay, probability, secondProbability)
       addIntersections(flow, isOneWay)
       this += flow
     }
