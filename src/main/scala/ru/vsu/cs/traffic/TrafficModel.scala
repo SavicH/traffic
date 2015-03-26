@@ -33,6 +33,8 @@ trait TrafficModel extends TrafficActor {
 
   def vehicles: Seq[Vehicle]
 
+  def currentTime: Double
+
   def addFlow(start: Point, end: Point, lanes: Int, probability: Probability = DefaultSpawnProbability, isOneWay: Boolean = false): TrafficModel
 
   def +=(flow: TrafficFlow): TrafficModel
@@ -71,31 +73,29 @@ object TrafficModel {
 
     private var _isRunning = false
 
-    var currentTime = 0.0
-    var doneCount = 0
-    var isRealTime = true
-    var vehiclesCount = 0
+    var _currentTime = 0.0
+    var _doneCount = 0
+    var _isRealTime = true
+    var _vehiclesCount = 0
 
     override protected def onReceive(message: Any): Unit = message match {
       case Time(step) =>
         act(step)
       case Done() =>
-        doneCount += 1
-        println("done")
-        if (doneCount >= vehiclesCount) {
-          println(currentTime)
-          trafficModelEventHandlers.foreach(_(ModelActed(currentTime)))
-          currentTime += timeStep
-          doneCount = 0
-          if (!isRealTime) {
-            if (currentTime < time) {
+        _doneCount += 1
+        if (_doneCount >= _vehiclesCount) {
+          trafficModelEventHandlers.foreach(_(ModelActed(_currentTime)))
+          _currentTime += timeStep
+          _doneCount = 0
+          if (!_isRealTime) {
+            if (_currentTime < time) {
               act(timeStep)
             } else {
               _isRunning = false
               trafficModelEventHandlers.foreach(_(ModelStopped()))
             }
           }
-          vehiclesCount = vehicles.length
+          _vehiclesCount = vehicles.length
         }
     }
 
@@ -113,7 +113,7 @@ object TrafficModel {
     override def run() {
       if (_isRunning) throw new IllegalStateException("Model is already running")
       _isRunning = true
-      isRealTime = true
+      _isRealTime = true
       import actorSystem.dispatcher
       actorTask = actorSystem.scheduler.schedule(
         Duration.Zero,
@@ -126,19 +126,19 @@ object TrafficModel {
     private def act(): Unit = {
       trafficFlows.foreach(_.act(timeStep))
       trafficLights.foreach(_.act(timeStep))
-      trafficModelEventHandlers.foreach(_(ModelActed(currentTime)))
-      currentTime += timeStep
+      trafficModelEventHandlers.foreach(_(ModelActed(_currentTime)))
+      _currentTime += timeStep
     }
 
     override def run(time: Double): Unit = {
       if (_isRunning) throw new IllegalStateException("Model is already running")
       _isRunning = true
-      isRealTime = true
-      while (currentTime < time && _isRunning) {
+      _isRealTime = true
+      while (_currentTime < time && _isRunning) {
         act()
       }
       _isRunning = false
-      currentTime = 0
+      _currentTime = 0
     }
 
     var time = 0.0
@@ -146,7 +146,7 @@ object TrafficModel {
     override def asyncRun(time: Double): Unit = {
       if (_isRunning) throw new IllegalStateException("Model is already running")
       _isRunning = true
-      isRealTime = true
+      _isRealTime = true
       this.time = time
       act(timeStep)
     }
@@ -181,6 +181,8 @@ object TrafficModel {
         _trafficFlows += flow.neighbour
       this
     }
+
+    override def currentTime: Double = _currentTime
 
     override def intersections: Seq[Intersection] = _intersections.toList
 
