@@ -1,6 +1,7 @@
 package ru.vsu.cs.traffic
 
 import ru.vsu.cs.traffic.event.VehicleSpawned
+import ru.vsu.cs.traffic.vehicle.VirtualVehicle
 
 import scala.collection.mutable
 import scala.util.Random
@@ -14,6 +15,12 @@ trait TrafficFlow extends TrafficActor {
   val lanes: Int
 
   val length: Double = start -- end
+
+  private val VirtualOffset = 500.0
+
+  private[traffic] val virtualStart = VirtualVehicle(this, start, -VirtualOffset)
+
+  private[traffic] val virtualEnd = VirtualVehicle(this, end, VirtualOffset)
 
   def neighbour: TrafficFlow
 

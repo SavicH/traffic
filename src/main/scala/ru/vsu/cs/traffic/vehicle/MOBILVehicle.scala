@@ -10,7 +10,7 @@ trait MOBILVehicle extends IDMVehicle {
 
   val thresholdAcceleration: Double = 0.4
 
-  def backVehicle(lane: Int = lane): Vehicle
+  private[vehicle] def backVehicle(lane: Int = lane): Vehicle
 
-  val mobil = MOBIL(this)
+  private[vehicle] val mobil = MOBIL(this)
 }

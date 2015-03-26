@@ -1,7 +1,7 @@
-package ru.vsu.cs.traffic
+package ru.vsu.cs.traffic.vehicle
 
 import org.scalatest.FunSuite
-import ru.vsu.cs.traffic.vehicle.VehicleImpl
+import ru.vsu.cs.traffic.{Point, TrafficModel}
 
 class MOBILTest extends FunSuite {
 

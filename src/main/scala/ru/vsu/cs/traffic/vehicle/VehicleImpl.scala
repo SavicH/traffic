@@ -22,12 +22,8 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int
 
   protected var _direction: Direction = null
   protected var movementStrategy: MovementStrategy = null
-
-  private var nextIntersection: Intersection = null
-
-  protected var endOfFlow: VirtualVehicle = null
-  protected var startOfFlow: VirtualVehicle = null
-  private var target: VirtualVehicle = null
+  protected var nextIntersection: Intersection = null
+  protected var target: VirtualVehicle = null
 
   changeTrafficFlow(_trafficFlow)
   _speed = random * desiredSpeed
@@ -53,28 +49,26 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int
           .reduceLeft((i1, i2) => if (i1(trafficFlow).distance < i2(trafficFlow).distance) i1 else i2)
     }
     _trafficFlow = trafficFlow
-    endOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.end, 1000)
-    startOfFlow = VirtualVehicle(_trafficFlow, _trafficFlow.start, -1000)
     _direction = randomDirection
     movementStrategy = MovementStrategy(_direction)
-    target = if (_direction == FORWARD) endOfFlow
+    target = if (_direction == FORWARD) trafficFlow.virtualEnd
     else VirtualVehicle(_trafficFlow, nextIntersection.location, -minimalGap)
   }
 
-  def headVehicle(lane: Int = lane): Vehicle = {
+  private[vehicle] def headVehicle(lane: Int = lane): Vehicle = {
     val vehicles = _trafficFlow.vehicles.filter(_.lane == lane) ++
       (target :: _trafficFlow.trafficLights.filter(_.color == RED)
         .map(l => VirtualVehicle(trafficFlow, l.location)).toList)
     val vehiclesMap = vehicles.map(v => (v.distance, v)).toMap
     val distances = vehiclesMap.keys.filter(_ > distance)
-    if (distances.isEmpty) endOfFlow else vehiclesMap(distances.min)
+    if (distances.isEmpty) trafficFlow.virtualEnd else vehiclesMap(distances.min)
   }
 
-  def backVehicle(lane: Int = lane): Vehicle = {
+  private[vehicle] def backVehicle(lane: Int = lane): Vehicle = {
     val vehiclesMap = _trafficFlow.vehicles.filter(_.lane == lane)
       .map(v => (v.distance, v)).toMap
     val distances = vehiclesMap.keys.filter(_ < distance)
-    if (distances.isEmpty) startOfFlow else vehiclesMap(distances.max).asInstanceOf[IDMVehicle]
+    if (distances.isEmpty) trafficFlow.virtualStart else vehiclesMap(distances.max).asInstanceOf[IDMVehicle]
   }
 
   override protected def onReceive(message: Any): Unit = message match {

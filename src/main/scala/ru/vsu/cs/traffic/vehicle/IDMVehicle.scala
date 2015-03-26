@@ -18,5 +18,5 @@ trait IDMVehicle extends Vehicle {
 
   val idm = IDM(this)
 
-  def headVehicle(lane: Int = lane): Vehicle
+  private[vehicle] def headVehicle(lane: Int = lane): Vehicle
 }
