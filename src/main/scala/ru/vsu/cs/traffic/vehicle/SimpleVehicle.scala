@@ -17,13 +17,13 @@ class SimpleVehicle(tf: TrafficFlow, model: TrafficModel, h: Vehicle, lane: Int)
   override def headVehicle(lane: Int): Vehicle = {
     val lights = trafficFlow.trafficLights
       .filter(l => l.color == RED && l.distance < head.distance && l.distance > distance)
-    if (lights.nonEmpty) VirtualVehicle(trafficFlow, lights.reduceLeft((t1, t2) => if (t1.distance < t2.distance) t1 else t2).location, -20)
+    if (lights.nonEmpty) VirtualVehicle(trafficFlow, lights.reduceLeft((t1, t2) => if (t1.distance < t2.distance) t1 else t2).location)
     else if (trafficFlow.vehicles.contains(head)) head
     else endOfFlow
   }
 
   override protected[traffic] def act(timeStep: Double): Unit = {
-    if (distance > trafficFlow.length + 500) {
+    if (distance > trafficFlow.length) {
       trafficFlow -= this
       model.actorSystem.stop(actor)
     }
