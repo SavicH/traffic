@@ -1,6 +1,6 @@
 package ru.vsu.cs.traffic
 
-import ru.vsu.cs.traffic.event.VehicleSpawned
+import ru.vsu.cs.traffic.event.{VehicleRemoved, VehicleSpawned}
 import ru.vsu.cs.traffic.vehicle.VirtualVehicle
 
 import scala.collection.mutable
@@ -105,9 +105,15 @@ object TrafficFlow {
       }
     }
 
-    override private[traffic] def +=(v: Vehicle): Unit = _vehicles += v
+    override private[traffic] def +=(v: Vehicle): Unit = {
+      _vehicles += v
+      model.fireVehicleEvent(VehicleSpawned(v))
+    }
 
-    override private[traffic] def -=(v: Vehicle): Unit = _vehicles -= v
+    override private[traffic] def -=(v: Vehicle): Unit = {
+      _vehicles -= v
+      model.fireVehicleEvent(VehicleRemoved(v))
+    }
 
     private val VehicleSpawnMinDelay = 2.0
     private var vehicleSpawnDelay = VehicleSpawnMinDelay
@@ -130,7 +136,6 @@ object TrafficFlow {
             val vehicle = Vehicle(model, this, lane, lastVehicles.getOrElse(lane, null))
             _vehicles += vehicle
             lastVehicles(lane) = vehicle
-            model.fireVehicleEvent(VehicleSpawned(vehicle))
           }
           vehicleSpawnDelay = 0
         }
