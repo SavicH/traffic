@@ -3,15 +3,7 @@ package ru.vsu.cs.traffic.vehicle
 import ru.vsu.cs.traffic.Color.RED
 import ru.vsu.cs.traffic.{Direction, TrafficFlow, TrafficModel, Vehicle}
 
-//todo: refactor VehicleImpl class
-class SimpleVehicle(tf: TrafficFlow, model: TrafficModel, h: Vehicle, lane: Int) extends VehicleImpl(tf, model, lane) {
-
-  private class DummyMOBIL extends MOBIL(this) {
-    override def lane: Int = SimpleVehicle.this.lane
-  }
-
-  override val mobil: MOBIL = new DummyMOBIL
-
+class SimpleVehicle(tf: TrafficFlow, model: TrafficModel, h: Vehicle, lane: Int) extends IDMVehicleImpl(tf, model, lane) {
   val head: Vehicle = if (h == null) trafficFlow.virtualEnd else h
 
   override def headVehicle(lane: Int): Vehicle = {

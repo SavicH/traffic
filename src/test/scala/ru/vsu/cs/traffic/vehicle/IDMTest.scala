@@ -9,27 +9,27 @@ class IDMTest extends FunSuite {
   model.addFlow(Point(0, 0), Point(0, 500), 2, isOneWay = true)
   val flow = model.trafficFlows(0)
 
-  val v1 = new VehicleImpl(flow, model, 1) {
+  val v1 = new MOBILVehicleImpl(flow, model, 1) {
     override def distance = 10
     override def speed = 15
   }
 
-  val v2 = new VehicleImpl(flow, model, 1) {
+  val v2 = new MOBILVehicleImpl(flow, model, 1) {
     override def distance = 20
     override def speed = 10
   }
 
-  val v3 = new VehicleImpl(flow, model, 1) {
+  val v3 = new MOBILVehicleImpl(flow, model, 1) {
     override def distance = 30
     override def speed = 1
   }
 
-  val v4 = new VehicleImpl(flow, model, 2) {
+  val v4 = new MOBILVehicleImpl(flow, model, 2) {
     override def distance = 5
     override def speed = 10
   }
 
-  val v5 = new VehicleImpl(flow, model, 2) {
+  val v5 = new MOBILVehicleImpl(flow, model, 2) {
     override def distance = 25
     override def speed = 10
   }

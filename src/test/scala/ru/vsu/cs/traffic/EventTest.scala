@@ -4,7 +4,7 @@ import org.scalatest.{BeforeAndAfter, FunSuite}
 import ru.vsu.cs.traffic.Color.{GREEN, RED, YELLOW}
 import ru.vsu.cs.traffic.Direction.{BACK, FORWARD, LEFT, RIGHT}
 import ru.vsu.cs.traffic.event._
-import ru.vsu.cs.traffic.vehicle.VehicleImpl
+import ru.vsu.cs.traffic.vehicle.MOBILVehicleImpl
 
 class EventTest extends FunSuite with BeforeAndAfter {
 
@@ -55,11 +55,11 @@ class EventTest extends FunSuite with BeforeAndAfter {
     var isTriggered = false
     val f2 = model.trafficFlows(1)
     model.vehicleEventHandlers += (event => if (event.isInstanceOf[LaneChanged]) isTriggered = true)
-    val v1 = new VehicleImpl(f2, model, 1) {
+    val v1 = new MOBILVehicleImpl(f2, model, 1) {
       override val speed = 10.0
       override val distance = 0.0
     }
-    val v2 = new VehicleImpl(f2, model, 1) {
+    val v2 = new MOBILVehicleImpl(f2, model, 1) {
       override val speed = 5.0
       override val distance = 10.0
     }
@@ -78,12 +78,12 @@ class EventTest extends FunSuite with BeforeAndAfter {
     val flow = model.trafficFlows(0)
     val dist = model.intersections(0)(flow).distance + 1
     model.trafficLights.foreach(_.turnProbabilities = Map(FORWARD -> 1, BACK -> 0, LEFT -> 0, RIGHT -> 0))
-    val v1 = new VehicleImpl(flow, model, 1) {
+    val v1 = new MOBILVehicleImpl(flow, model, 1) {
       override val speed = 10.0
       override val distance = dist
     }
     v1.act(1)
-    Thread.sleep(100)
+    Thread.sleep(1000)
     assert(isTriggered)
   }
 

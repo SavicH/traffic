@@ -1,15 +1,15 @@
 package ru.vsu.cs.traffic.vehicle
 
-import ru.vsu.cs.traffic.Color._
-import ru.vsu.cs.traffic.Direction._
+import ru.vsu.cs.traffic.Color.{GREEN, RED}
+import ru.vsu.cs.traffic.Direction.{BACK, FORWARD, LEFT, RIGHT}
 import ru.vsu.cs.traffic._
 import ru.vsu.cs.traffic.event._
 import ru.vsu.cs.traffic.util._
 
 import scala.math._
 
-class VehicleImpl(private var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int)
-  extends MOBILVehicle {
+class IDMVehicleImpl(protected var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int)
+  extends IDMVehicle {
 
   override private[traffic] val model: TrafficModel = m
 
@@ -21,9 +21,9 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int
   val length = 5.0
 
   protected var _direction: Direction = null
-  protected var movementStrategy: MovementStrategy = null
-  protected var nextIntersection: Intersection = null
-  protected var target: VirtualVehicle = null
+  protected var _movementStrategy: MovementStrategy = null
+  protected var _nextIntersection: Intersection = null
+  protected var _target: VirtualVehicle = null
 
   changeTrafficFlow(_trafficFlow)
   _speed = random * desiredSpeed
@@ -35,40 +35,37 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int
     trafficFlow += this
     _speed = maneuverSpeed
     _acceleration = 0
-    _lane = _direction match {
-      case RIGHT => trafficFlow.lanes
-      case BACK => trafficFlow.lanes
-      case _ => _trafficFlow.randomLane
-    }
-    _distance = if (nextIntersection == null) 0 else nextIntersection(trafficFlow).distance + minimalGap
-    nextIntersection = {
-      if (trafficFlow.intersections.filter(_(trafficFlow).distance > distance).isEmpty) null
-      else
-        trafficFlow.intersections
-          .filter(_(trafficFlow).distance > distance)
-          .reduceLeft((i1, i2) => if (i1(trafficFlow).distance < i2(trafficFlow).distance) i1 else i2)
-    }
+    _lane = getLane
+    _distance = if (_nextIntersection == null) 0 else _nextIntersection(trafficFlow).distance + minimalGap
+    _nextIntersection = getNextIntersection
     _trafficFlow = trafficFlow
     _direction = randomDirection
-    movementStrategy = MovementStrategy(_direction)
-    target = if (_direction == FORWARD) trafficFlow.virtualEnd
-    else VirtualVehicle(_trafficFlow, nextIntersection.location, -minimalGap)
+    _movementStrategy = MovementStrategy(_direction)
+    _target = if (_direction == FORWARD) trafficFlow.virtualEnd
+    else VirtualVehicle(_trafficFlow, _nextIntersection.location, -minimalGap)
   }
 
-  private[vehicle] def headVehicle(lane: Int = lane): Vehicle = {
+  private def getNextIntersection = {
+    if (trafficFlow.intersections.filter(_(trafficFlow).distance > distance).isEmpty) null
+    else
+      trafficFlow.intersections
+        .filter(_(trafficFlow).distance > distance)
+        .reduceLeft((i1, i2) => if (i1(trafficFlow).distance < i2(trafficFlow).distance) i1 else i2)
+  }
+
+  private def getLane = _direction match {
+    case RIGHT => trafficFlow.lanes
+    case BACK => trafficFlow.lanes
+    case _ => _trafficFlow.randomLane
+  }
+
+  override private[vehicle] def headVehicle(lane: Int = lane): Vehicle = {
     val vehicles = _trafficFlow.vehicles.filter(_.lane == lane) ++
-      (target :: _trafficFlow.trafficLights.filter(_.color == RED)
+      (_target :: _trafficFlow.trafficLights.filter(_.color == RED)
         .map(l => VirtualVehicle(trafficFlow, l.location)).toList)
     val vehiclesMap = vehicles.map(v => (v.distance, v)).toMap
     val distances = vehiclesMap.keys.filter(_ > distance)
     if (distances.isEmpty) trafficFlow.virtualEnd else vehiclesMap(distances.min)
-  }
-
-  private[vehicle] def backVehicle(lane: Int = lane): Vehicle = {
-    val vehiclesMap = _trafficFlow.vehicles.filter(_.lane == lane)
-      .map(v => (v.distance, v)).toMap
-    val distances = vehiclesMap.keys.filter(_ < distance)
-    if (distances.isEmpty) trafficFlow.virtualStart else vehiclesMap(distances.max).asInstanceOf[IDMVehicle]
   }
 
   override protected def onReceive(message: Any): Unit = message match {
@@ -82,7 +79,7 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int
       _trafficFlow -= this
       model.actorSystem.stop(actor)
     }
-    movementStrategy(timeStep)
+    _movementStrategy(timeStep)
   }
 
   override def lane: Int = _lane
@@ -97,11 +94,11 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int
 
   override def direction: Direction = _direction
 
-  private def randomDirection = {
-    if (nextIntersection == null) FORWARD
+  protected def randomDirection = {
+    if (_nextIntersection == null) FORWARD
     else {
-      val directions = nextIntersection(_trafficFlow).turnProbabilities.map(_._1).toSeq
-      val probabilities = nextIntersection(_trafficFlow).turnProbabilities
+      val directions = _nextIntersection(_trafficFlow).turnProbabilities.map(_._1).toSeq
+      val probabilities = _nextIntersection(_trafficFlow).turnProbabilities
         .map(_._2).scanLeft(0.0)(_ + _).toSeq
       val result = probabilities.filter(_ <= random).max
       directions(probabilities.indexOf(result))
@@ -109,11 +106,6 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int
   }
 
   protected def basicMovement(timeStep: Double): Unit = {
-    val newLane = mobil.lane
-    if (newLane != lane) {
-      model.fireVehicleEvent(LaneChanged(this, _lane))
-      _lane = newLane
-    }
     val oldSpeed = _speed
     _acceleration = idm.acceleration
     _speed += _acceleration * timeStep
@@ -132,33 +124,33 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int
     }
   }
 
-  private def moveForward(timeStep: Double): Unit = {
-    if (nextIntersection != null && distance > nextIntersection(_trafficFlow).distance) {
-      model.fireVehicleEvent(IntersectionPassed(this, nextIntersection))
-      nextIntersection = nextIntersection.next(_trafficFlow)
+  protected def moveForward(timeStep: Double): Unit = {
+    if (_nextIntersection != null && distance > _nextIntersection(_trafficFlow).distance) {
+      model.fireVehicleEvent(IntersectionPassed(this, _nextIntersection))
+      _nextIntersection = _nextIntersection.next(_trafficFlow)
       _direction = randomDirection
-      movementStrategy = MovementStrategy(_direction)
+      _movementStrategy = MovementStrategy(_direction)
     } else {
       basicMovement(timeStep)
     }
   }
 
-  private def isGreenLight = nextIntersection(_trafficFlow).color == GREEN
+  private def isGreenLight = _nextIntersection(_trafficFlow).color == GREEN
 
   protected var currentTurningTime = 0.0
 
-  private def moveRight(timeStep: Double): Unit = {
-    if (abs(distance - target.distance) < length && isGreenLight) {
+  protected def moveRight(timeStep: Double): Unit = {
+    if (abs(distance - _target.distance) < length && isGreenLight) {
       currentTurningTime = counter(timeStep, currentTurningTime, timeToTurnRight) {
-        changeTrafficFlow(nextIntersection(_trafficFlow)(RIGHT))
+        changeTrafficFlow(_nextIntersection(_trafficFlow)(RIGHT))
       }
     } else {
       basicMovement(timeStep)
     }
   }
 
-  private def roadIsClear(): Boolean = {
-    val d = nextIntersection(_trafficFlow.neighbour).distance
+  protected def roadIsClear(): Boolean = {
+    val d = _nextIntersection(_trafficFlow.neighbour).distance
     val safeDistance = 100
     val forwardVehicles = _trafficFlow.neighbour.vehicles
       .filter(v =>
@@ -172,9 +164,9 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int
   }
 
   private def moveLeftAndBack(timeStep: Double) = {
-    if (abs(distance - target.distance) < length && isGreenLight && roadIsClear()) {
+    if (abs(distance - _target.distance) < length && isGreenLight && roadIsClear()) {
       currentTurningTime = counter(timeStep, currentTurningTime, timeToTurnLeft) {
-        changeTrafficFlow(nextIntersection(_trafficFlow)(_direction))
+        changeTrafficFlow(_nextIntersection(_trafficFlow)(_direction))
       }
     } else {
       basicMovement(timeStep)
@@ -195,4 +187,3 @@ class VehicleImpl(private var _trafficFlow: TrafficFlow, m: TrafficModel, l: Int
   }
 
 }
-
