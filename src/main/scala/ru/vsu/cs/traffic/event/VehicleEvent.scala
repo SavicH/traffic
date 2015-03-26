@@ -2,7 +2,7 @@ package ru.vsu.cs.traffic.event
 
 import ru.vsu.cs.traffic.{Direction, Intersection, TrafficFlow, Vehicle}
 
-trait VehicleEvent
+trait VehicleEvent extends TrafficEvent
 
 case class VehicleSpawned(vehicle: Vehicle) extends VehicleEvent
 

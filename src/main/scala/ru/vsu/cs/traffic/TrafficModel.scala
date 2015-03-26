@@ -2,7 +2,7 @@ package ru.vsu.cs.traffic
 
 import java.util.concurrent.TimeUnit
 
-import akka.actor.{ActorSystem, Cancellable}
+import akka.actor._
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import ru.vsu.cs.traffic.event._
 
@@ -58,9 +58,11 @@ trait TrafficModel extends TrafficActor {
 
   val trafficModelEventHandlers = ListBuffer[TrafficModelEventHandler]()
 
-  private[traffic] def fireVehicleEvent(event: VehicleEvent) = vehicleEventHandlers.foreach(_(event))
+  protected def fireVehicleEvent(event: VehicleEvent) = vehicleEventHandlers.foreach(_(event))
 
-  private[traffic] def fireTrafficLightEvent(event: TrafficLightEvent) = trafficLightEventHandlers.foreach(_(event))
+  protected def fireTrafficLightEvent(event: TrafficLightEvent) = trafficLightEventHandlers.foreach(_(event))
+
+  protected def fireTrafficModelEvent(event: TrafficModelEvent) = trafficModelEventHandlers.foreach(_(event))
 }
 
 object TrafficModel {
@@ -86,6 +88,8 @@ object TrafficModel {
     var _vehiclesCount = 0
 
     override protected def onReceive(message: Any): Unit = message match {
+      case e: TrafficEvent =>
+        EventHandler() ! e
       case Time(step) =>
         act(step)
       case Done() =>
@@ -208,6 +212,25 @@ object TrafficModel {
         intersection <- _intersections
         light <- intersection.trafficLights
       } yield light
+
+    private class EventHandler extends UntypedActor() {
+      @throws[Exception](classOf[Exception])
+      override def onReceive(message: Any): Unit = message match {
+        case e: TrafficModelEvent =>
+          fireTrafficModelEvent(e)
+          getSelf() ! PoisonPill
+        case e: TrafficLightEvent =>
+          fireTrafficLightEvent(e)
+          getSelf() ! PoisonPill
+        case e: VehicleEvent =>
+          fireVehicleEvent(e)
+          getSelf() ! PoisonPill
+      }
+    }
+
+    private object EventHandler {
+      def apply(): ActorRef = actorSystem.actorOf(Props(new EventHandler()))
+    }
   }
 
 }

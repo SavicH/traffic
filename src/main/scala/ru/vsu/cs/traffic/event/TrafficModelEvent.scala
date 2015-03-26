@@ -1,6 +1,6 @@
 package ru.vsu.cs.traffic.event
 
-trait TrafficModelEvent
+trait TrafficModelEvent extends TrafficEvent
 
 case class ModelActed(time: Double) extends TrafficModelEvent
 

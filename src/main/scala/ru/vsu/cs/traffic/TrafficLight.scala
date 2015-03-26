@@ -100,12 +100,12 @@ object TrafficLight {
       val duration = durations.getOrElse(color, 0.0)
       if (!isChangingColorEventFired && currentDuration > duration - TimeToFireColorChangingEvent) {
         isChangingColorEventFired = true
-        model.fireTrafficLightEvent(BeforeColorChanged(this))
+        model.actor ! BeforeColorChanged(this)
       }
       if (currentDuration > duration) {
         currentDuration = currentDuration - duration
         color = nextColor(color)
-        model.fireTrafficLightEvent(ColorChanged(this))
+        model.actor ! ColorChanged(this)
         isChangingColorEventFired = false
       }
     }

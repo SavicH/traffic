@@ -12,6 +12,8 @@ trait TrafficActor {
 
   private[traffic] def act(timeStep: Double): Unit
 
+  private def !(message: Any): Unit = actor ! message
+
   private[traffic] val model: TrafficModel
 
   lazy private[traffic] val actor: ActorRef = model.actorSystem.actorOf(Props(new InnerActor))
