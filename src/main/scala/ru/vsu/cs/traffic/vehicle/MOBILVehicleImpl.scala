@@ -16,7 +16,7 @@ class MOBILVehicleImpl(tf: TrafficFlow, m: TrafficModel, l: Int)
   override protected def basicMovement(timeStep: Double): Unit = {
     val newLane = mobil.lane
     if (newLane != lane) {
-      model.actor ! LaneChanged(this, _lane)
+      model ! LaneChanged(this, _lane)
       _lane = newLane
     }
     super.basicMovement(timeStep)

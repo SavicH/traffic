@@ -107,12 +107,12 @@ object TrafficFlow {
 
     override private[traffic] def +=(v: Vehicle): Unit = {
       _vehicles += v
-      model.actor ! VehicleSpawned(v)
+      model ! VehicleSpawned(v)
     }
 
     override private[traffic] def -=(v: Vehicle): Unit = {
       _vehicles -= v
-      model.actor ! VehicleRemoved(v)
+      model ! VehicleRemoved(v)
     }
 
     private val VehicleSpawnMinDelay = 2.0
@@ -143,9 +143,7 @@ object TrafficFlow {
         vehicleSpawnDelay += timeStep
       }
       time += timeStep
-      for (v <- _vehicles) {
-        v.actor ! Time(timeStep)
-      }
+      _vehicles.foreach(_ ! Time(timeStep))
     }
 
     override def toString: String = {

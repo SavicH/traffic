@@ -32,7 +32,7 @@ class IDMVehicleImpl(protected var _trafficFlow: TrafficFlow, m: TrafficModel, l
   protected def changeTrafficFlow(trafficFlow: TrafficFlow) = {
     val oldFlow = _trafficFlow
     _trafficFlow = trafficFlow
-    model.actor ! TrafficFlowChanged(this, oldFlow, oldFlow <> _trafficFlow)
+    model ! TrafficFlowChanged(this, oldFlow, oldFlow <> _trafficFlow)
     oldFlow -= this
     _trafficFlow += this
     _speed = maneuverSpeed
@@ -72,7 +72,7 @@ class IDMVehicleImpl(protected var _trafficFlow: TrafficFlow, m: TrafficModel, l
   override protected def onReceive(message: Any): Unit = message match {
     case Time(timeStep) =>
       act(timeStep)
-      model.actor ! Done()
+      model ! Done()
   }
 
   override protected[traffic] def act(timeStep: Double): Unit = {
@@ -118,16 +118,16 @@ class IDMVehicleImpl(protected var _trafficFlow: TrafficFlow, m: TrafficModel, l
     }
     val minimalSpeed = 0.1
     if (oldSpeed > minimalSpeed && speed <= minimalSpeed) {
-      model.actor ! VehicleStopped(this)
+      model ! VehicleStopped(this)
     }
     if (oldSpeed < minimalSpeed && speed >= minimalSpeed) {
-      model.actor ! VehicleMoved(this)
+      model ! VehicleMoved(this)
     }
   }
 
   protected def moveForward(timeStep: Double): Unit = {
     if (_nextIntersection != null && distance > _nextIntersection(_trafficFlow).distance) {
-      model.actor ! IntersectionPassed(this, _nextIntersection)
+      model ! IntersectionPassed(this, _nextIntersection)
       _nextIntersection = _nextIntersection.next(_trafficFlow)
       _direction = randomDirection
       _movementStrategy = MovementStrategy(_direction)

@@ -95,7 +95,7 @@ object TrafficModel {
       case Done() =>
         _doneCount += 1
         if (_doneCount >= _vehiclesCount) {
-          trafficModelEventHandlers.foreach(_(ModelActed(_currentTime)))
+          this ! ModelActed(_currentTime)
           _currentTime += timeStep
           _doneCount = 0
           if (!_isRealTime) {
@@ -103,7 +103,7 @@ object TrafficModel {
               act(timeStep)
             } else {
               _isRunning = false
-              trafficModelEventHandlers.foreach(_(ModelStopped()))
+              this ! ModelStopped()
             }
           }
           _vehiclesCount = vehicles.length
@@ -111,12 +111,8 @@ object TrafficModel {
     }
 
     override private[traffic] def act(timeStep: Double): Unit = {
-      for (f <- _trafficFlows) {
-        f.actor ! Time(timeStep)
-      }
-      for (tl <- trafficLights) {
-        tl.actor ! Time(timeStep)
-      }
+      _trafficFlows.foreach(_ ! Time(timeStep))
+      trafficLights.foreach(_ ! Time(timeStep))
     }
 
     private var actorTask: Cancellable = null
@@ -137,7 +133,7 @@ object TrafficModel {
     private def act(): Unit = {
       trafficFlows.foreach(_.act(timeStep))
       trafficLights.foreach(_.act(timeStep))
-      trafficModelEventHandlers.foreach(_(ModelActed(_currentTime)))
+      this ! ModelActed(_currentTime)
       _currentTime += timeStep
     }
 
