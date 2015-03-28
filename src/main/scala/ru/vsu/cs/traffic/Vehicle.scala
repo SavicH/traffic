@@ -1,7 +1,7 @@
 package ru.vsu.cs.traffic
 
 import ru.vsu.cs.traffic.util.line
-import ru.vsu.cs.traffic.vehicle.{MOBILVehicleImpl, SimpleVehicle}
+import ru.vsu.cs.traffic.vehicle.{Car, SimpleVehicle, Truck}
 
 trait Vehicle extends TrafficActor {
 
@@ -20,7 +20,7 @@ trait Vehicle extends TrafficActor {
   def acceleration: Double
 
   val length: Double
-  
+
   val maneuverSpeed = 3
 
   def direction: Direction
@@ -38,7 +38,8 @@ object Vehicle {
   def apply(model: TrafficModel, trafficFlow: TrafficFlow, lane: Int, head: Vehicle = null) = {
     if (model.isSimple)
       new SimpleVehicle(trafficFlow, model, head, lane)
-    else
-      new MOBILVehicleImpl(trafficFlow, model, lane)
+    else if (math.random < model.truckProportion)
+      new Truck(trafficFlow, model, lane)
+    else new Car(trafficFlow, model, lane)
   }
 }

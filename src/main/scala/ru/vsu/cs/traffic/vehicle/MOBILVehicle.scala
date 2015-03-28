@@ -4,7 +4,7 @@ import ru.vsu.cs.traffic.Vehicle
 
 trait MOBILVehicle extends IDMVehicle {
 
-  val politenessFactor: Double = 0.4
+  val politenessFactor: Double = 0.3
 
   val maximumSafeDeceleration: Double = 4.0
 

@@ -14,6 +14,17 @@ trait TrafficModel extends TrafficActor {
 
   val DefaultSpawnProbability: Probability = _ => 0.2
 
+  private var _truckProportion = 0.2
+
+  def truckProportion = _truckProportion
+
+  def truckProportion_=(value: Double) = {
+    if ((value < 0) || (value > 1)) {
+      throw new IllegalArgumentException("Value must be between 0 and 1")
+    }
+    _truckProportion = value
+  }
+
   private val config = ConfigFactory.load()
     .withValue("akka.loglevel", ConfigValueFactory.fromAnyRef("OFF"))
     .withValue("akka.stdout-loglevel", ConfigValueFactory.fromAnyRef("OFF"))
