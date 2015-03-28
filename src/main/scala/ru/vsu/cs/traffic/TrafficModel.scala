@@ -78,11 +78,9 @@ trait TrafficModel extends TrafficActor {
 
 object TrafficModel {
 
-  def apply(): TrafficModel = new TrafficModelImpl()
+  def apply(timeStep: Double = 0.025, isSimple: Boolean = false, factor: Double = 1.0): TrafficModel = new TrafficModelImpl(timeStep, isSimple, factor)
 
-  def apply(timeStep: Double, isSimple: Boolean = false): TrafficModel = new TrafficModelImpl(timeStep, isSimple)
-
-  private class TrafficModelImpl(val timeStep: Double = 0.025, val isSimple: Boolean = false)
+  private class TrafficModelImpl(val timeStep: Double, val isSimple: Boolean = false, factor: Double)
     extends TrafficModel {
 
     private[traffic] val model = this
@@ -135,7 +133,7 @@ object TrafficModel {
       import actorSystem.dispatcher
       actorTask = actorSystem.scheduler.schedule(
         Duration.Zero,
-        Duration.create((timeStep * 1000).toInt, TimeUnit.MILLISECONDS),
+        Duration.create((timeStep * 1000 / factor).toInt, TimeUnit.MILLISECONDS),
         actor,
         Time(timeStep)
       )
