@@ -96,6 +96,11 @@ object TrafficModel {
     var _isRealTime = true
     var _vehiclesCount = 0
 
+    override def !(message: Any) = message match {
+      case e: TrafficEvent => fireEvent(e)
+      case m: Any => actor ! m
+    }
+
     override protected def onReceive(message: Any): Unit = message match {
       case e: TrafficEvent =>
         EventHandler() ! e
@@ -107,7 +112,7 @@ object TrafficModel {
           this ! ModelActed(_currentTime)
           _currentTime += timeStep
           _doneCount = 0
-          if (!_isRealTime) {
+          if (!_isRealTime && _isRunning) {
             if (_currentTime < time) {
               act(timeStep)
             } else {
@@ -122,6 +127,9 @@ object TrafficModel {
     override private[traffic] def act(timeStep: Double): Unit = {
       _trafficFlows.foreach(_ ! Time(timeStep))
       trafficLights.foreach(_ ! Time(timeStep))
+      if (!_isRealTime && _isRunning && vehicles.length == 0) {
+        act(timeStep)
+      }
     }
 
     private var actorTask: Cancellable = null
@@ -146,10 +154,16 @@ object TrafficModel {
       _currentTime += timeStep
     }
 
+    private def fireEvent(e: TrafficEvent) = e match {
+      case e: TrafficModelEvent => fireTrafficModelEvent(e)
+      case e: TrafficLightEvent => fireTrafficLightEvent(e)
+      case e: VehicleEvent => fireVehicleEvent(e)
+    }
+
     override def run(time: Double): Unit = {
       if (_isRunning) throw new IllegalStateException("Model is already running")
       _isRunning = true
-      _isRealTime = true
+      _isRealTime = false
       while (_currentTime < time && _isRunning) {
         act()
       }
@@ -162,7 +176,7 @@ object TrafficModel {
     override def asyncRun(time: Double): Unit = {
       if (_isRunning) throw new IllegalStateException("Model is already running")
       _isRunning = true
-      _isRealTime = true
+      _isRealTime = false
       this.time = time
       act(timeStep)
     }
@@ -221,14 +235,8 @@ object TrafficModel {
     private class EventHandler extends UntypedActor() {
       @throws[Exception](classOf[Exception])
       override def onReceive(message: Any): Unit = message match {
-        case e: TrafficModelEvent =>
-          fireTrafficModelEvent(e)
-          getSelf() ! PoisonPill
-        case e: TrafficLightEvent =>
-          fireTrafficLightEvent(e)
-          getSelf() ! PoisonPill
-        case e: VehicleEvent =>
-          fireVehicleEvent(e)
+        case e: TrafficEvent =>
+          fireEvent(e)
           getSelf() ! PoisonPill
       }
     }
