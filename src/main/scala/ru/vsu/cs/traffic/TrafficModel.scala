@@ -26,8 +26,7 @@ trait TrafficModel extends TrafficActor {
   }
 
   private val config = ConfigFactory.load()
-    .withValue("akka.loglevel", ConfigValueFactory.fromAnyRef("OFF"))
-    .withValue("akka.stdout-loglevel", ConfigValueFactory.fromAnyRef("OFF"))
+    .withValue("akka.log-dead-letters", ConfigValueFactory.fromAnyRef("OFF"))
 
   private[traffic] val actorSystem: ActorSystem = ActorSystem("system", config)
 

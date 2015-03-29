@@ -18,15 +18,23 @@ class DirectionTest extends FunSuite {
     assert(direction(q0, q1, p0, p1) === Direction.RIGHT)
   }
 
+  test("Direction LEFT 1") {
+    assert(direction(p0, p1, q0, q1) === Direction.LEFT)
+  }
+
   test("Direction RIGHT 2") {
     assert(direction(q0, q1, p0, p2) === Direction.RIGHT)
   }
 
-  test("Direction LEFT 1") {
+  test("Direction LEFT 2") {
+    assert(direction(p0, p2, q0, q1) === Direction.LEFT)
+  }
+
+  test("Direction LEFT 3") {
     assert(direction(q0, q1, p0, p3) === Direction.LEFT)
   }
 
-  test("Direction LEFT 2") {
+  test("Direction LEFT 4") {
     assert(direction(q0, q1, p0, p4) === Direction.LEFT)
   }
 

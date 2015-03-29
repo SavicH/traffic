@@ -107,12 +107,13 @@ object TrafficFlow {
 
     override private[traffic] def +=(v: Vehicle): Unit = {
       _vehicles += v
-      model ! VehicleSpawned(v)
     }
 
     override private[traffic] def -=(v: Vehicle): Unit = {
       _vehicles -= v
-      model ! VehicleRemoved(v)
+      if (v.distance > length) {
+        model ! VehicleRemoved(v)
+      }
     }
 
     private val VehicleSpawnMinDelay = 2.0
@@ -136,6 +137,7 @@ object TrafficFlow {
             val vehicle = Vehicle(model, this, lane, lastVehicles.getOrElse(lane, null))
             _vehicles += vehicle
             lastVehicles(lane) = vehicle
+            model ! VehicleSpawned(vehicle)
           }
           vehicleSpawnDelay = 0
         }
