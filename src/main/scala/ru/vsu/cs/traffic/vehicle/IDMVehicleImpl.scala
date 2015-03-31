@@ -64,15 +64,17 @@ class IDMVehicleImpl(protected var _trafficFlow: TrafficFlow, m: TrafficModel, l
     val vehicles = _trafficFlow.vehicles.filter(_.lane == lane) ++
       (_target :: _trafficFlow.trafficLights.filter(_.color == RED)
         .map(l => VirtualVehicle(trafficFlow, l.location)).toList)
-    val vehiclesMap = vehicles.map(v => (v.distance, v)).toMap
+    val vehiclesMap = vehicles.map(v => (v.distance, v)).toMap //todo: fix NullPointerException
     val distances = vehiclesMap.keys.filter(_ > distance)
     if (distances.isEmpty) trafficFlow.virtualEnd else vehiclesMap(distances.min)
   }
 
   override protected def onReceive(message: Any): Unit = message match {
     case Time(timeStep) =>
-      act(timeStep)
-      model ! Done()
+      try {
+        act(timeStep)
+      }
+      finally model ! Done()
   }
 
   override protected[traffic] def act(timeStep: Double): Unit = {

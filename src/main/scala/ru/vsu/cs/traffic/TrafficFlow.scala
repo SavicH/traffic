@@ -30,6 +30,8 @@ trait TrafficFlow extends TrafficActor {
 
   def trafficLights: Seq[TrafficLight] = intersections.map(_(this))
 
+  private[traffic] def clear(): Unit
+
   private[traffic] def &(other: TrafficFlow): Point
 
   private[traffic] def &&(other: TrafficFlow): Intersection
@@ -129,6 +131,10 @@ object TrafficFlow {
 
     private val lastVehicles = mutable.Map[Int, Vehicle]()
 
+    private[traffic] def clear(): Unit = {
+      _vehicles.clear()
+    }
+
     override def act(timeStep: Double) = {
       if (vehicleSpawnDelay >= VehicleSpawnMinDelay) {
         if (math.random < probability(time) * timeStep) {
@@ -138,6 +144,7 @@ object TrafficFlow {
             _vehicles += vehicle
             lastVehicles(lane) = vehicle
             model ! VehicleSpawned(vehicle)
+            model ! Done()
           }
           vehicleSpawnDelay = 0
         }

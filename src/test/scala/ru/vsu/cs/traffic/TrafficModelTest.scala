@@ -13,6 +13,10 @@ class TrafficModelTest extends FunSuite with BeforeAndAfter {
     model = TrafficModel(0.005)
   }
 
+  after {
+    model.stop()
+  }
+
   test("Add one way traffic flow") {
     assert(model.addFlow(start, end, lanes, isOneWay = true).
       trafficFlows.length === 1)
@@ -42,7 +46,8 @@ class TrafficModelTest extends FunSuite with BeforeAndAfter {
     assert(!model.isRunning)
   }
 
-  test("Run not in real time twice") {
+  ignore("Run not in real time twice") {
+    //run() method isn't blocking
     model.run(10)
     model.run(10)
     assert(!model.isRunning)
