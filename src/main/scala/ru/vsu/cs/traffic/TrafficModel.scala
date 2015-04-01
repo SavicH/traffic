@@ -68,11 +68,35 @@ trait TrafficModel extends TrafficActor {
 
   val trafficModelEventHandlers = ListBuffer[TrafficModelEventHandler]()
 
-  protected def fireVehicleEvent(event: VehicleEvent) = vehicleEventHandlers.foreach(_(event))
+  protected def fireVehicleEvent(event: VehicleEvent) =
+    for (handler <- vehicleEventHandlers) {
+      try {
+        handler(event)
+      }
+      catch {
+        case e: Throwable => e.printStackTrace()
+      }
+    }
 
-  protected def fireTrafficLightEvent(event: TrafficLightEvent) = trafficLightEventHandlers.foreach(_(event))
+  protected def fireTrafficLightEvent(event: TrafficLightEvent) =
+    for (handler <- trafficLightEventHandlers) {
+      try {
+        handler(event)
+      }
+      catch {
+        case e: Throwable => e.printStackTrace()
+      }
+    }
 
-  protected def fireTrafficModelEvent(event: TrafficModelEvent) = trafficModelEventHandlers.foreach(_(event))
+  protected def fireTrafficModelEvent(event: TrafficModelEvent) =
+    for (handler <- trafficModelEventHandlers) {
+      try {
+        handler(event)
+      }
+      catch {
+        case e: Throwable => e.printStackTrace()
+      }
+    }
 }
 
 object TrafficModel {
@@ -92,8 +116,8 @@ object TrafficModel {
 
     var _currentTime = 0.0
     var _doneCount = 0
-    var _isRealTime = true
     var _vehiclesCount = 0
+    var _isRealTime = true
 
     override def !(message: Any) = message match {
       case e: TrafficEvent => fireEvent(e)
@@ -112,11 +136,10 @@ object TrafficModel {
           _currentTime += timeStep
           _doneCount = 0
           if (!_isRealTime && _isRunning) {
-            if (_currentTime < time) {
+            if (_currentTime < _time) {
               act(timeStep)
             } else {
-              _isRunning = false
-              this ! ModelStopped()
+              stop()
             }
           }
           _vehiclesCount = vehicles.length
@@ -170,20 +193,25 @@ object TrafficModel {
       _currentTime = 0
     }
 
-    var time = 0.0
+    var _time = 0.0
 
     override def asyncRun(time: Double): Unit = {
       if (_isRunning) throw new IllegalStateException("Model is already running")
       _isRunning = true
       _isRealTime = false
-      this.time = time
+      _time = time
+      // _currentTime = 0
       act(timeStep)
     }
 
     override def stop(): Unit = {
-      _isRunning = false
-      if (actorTask != null) {
-        actorTask.cancel()
+      if (isRunning) {
+        _isRunning = false
+        this ! ModelStopped()
+        _isRunning = false
+        if (actorTask != null) {
+          actorTask.cancel()
+        }
       }
     }
 

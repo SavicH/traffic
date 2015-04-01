@@ -61,9 +61,9 @@ class IDMVehicleImpl(protected var _trafficFlow: TrafficFlow, m: TrafficModel, l
   }
 
   override private[vehicle] def headVehicle(lane: Int = lane): Vehicle = {
-    val vehicles = _trafficFlow.vehicles.filter(_.lane == lane) ++
+    val vehicles = (_trafficFlow.vehicles.filter(_.lane == lane) ++
       (_target :: _trafficFlow.trafficLights.filter(_.color == RED)
-        .map(l => VirtualVehicle(trafficFlow, l.location)).toList)
+        .map(l => VirtualVehicle(trafficFlow, l.location)).toList)).filter(_ != null)
     val vehiclesMap = vehicles.map(v => (v.distance, v)).toMap //todo: fix NullPointerException
     val distances = vehiclesMap.keys.filter(_ > distance)
     if (distances.isEmpty) trafficFlow.virtualEnd else vehiclesMap(distances.min)
