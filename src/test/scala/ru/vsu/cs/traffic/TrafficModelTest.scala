@@ -48,6 +48,7 @@ class TrafficModelTest extends FunSuite with BeforeAndAfter {
 
   ignore("Run not in real time twice") {
     //run() method isn't blocking
+    //Hello dude %)
     model.run(10)
     model.run(10)
     assert(!model.isRunning)
